@@ -75,3 +75,32 @@ moduleScenariosUI <- function(id) {
   )
 }
 
+input_checkbox <- function(input, output, session) {
+  reac <- reactive({
+    inputs <- reactiveValuesToList(input)
+    inputs <- dropFalse(inputs)
+    gsub(pattern = "^check_", replacement = "", x = names(inputs))
+  })
+
+  return(reac)
+}
+
+dropFalse <- function(x) {
+  isFALSE <- Negate(isTRUE)
+  x[!vapply(x, isFALSE, FUN.VALUE = logical(1))]
+}
+
+
+#' Enable / Disable a Button
+#'
+#' @param session shiny session.
+#' @param inputId Input's id to enable / disable.
+#' @param type 'enable' or 'disable'.
+#'
+#' @noRd
+toggleBtn <- function(session, inputId, type = "disable") {
+  session$sendCustomMessage(
+    type = "togglewidget",
+    message = list(inputId = inputId, type = type)
+  )
+}

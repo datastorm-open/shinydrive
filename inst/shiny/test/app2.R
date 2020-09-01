@@ -47,7 +47,8 @@ ui <- fluidPage(
     class = "btn-primary"
   ),
 
-  DT::dataTableOutput("dt")
+  uiOutput("rdt"),
+  uiOutput("supress_all")
 )
 
 server <- function(input, output, session) {
@@ -140,17 +141,19 @@ server <- function(input, output, session) {
   yml <- reactive({
     req(input$select_scenario_dir)
 
-    print(input$select_scenario_dir)
     file.path(save_dir,input$select_scenario_dir, "files_desc.yaml")
 
   })
   ###End gestion dossier
 
   all_files <- reactive({
+
     input$added_file
     input$select_scenario_dir
     for_up$rec
     for_up2$rec
+    for_up3$rec
+    input$removed_user
     print("edited!!")
     if(!file.exists(yml()))return(NULL)
     yaml_to_dt(yml())
@@ -227,14 +230,21 @@ server <- function(input, output, session) {
   uniquenames <- reactive({
     req(all_files())
     dt <- all_files()
-    uniquenames <- paste0(tools::file_path_sans_ext(dt$names), dt$date_time)
+    uniquenames <- paste0(tools::file_path_sans_ext(dt$names),
+                          dt$date_time)
     uniquenames
   })
+
+  output$rdt <- renderUI({
+    div(
+      DT::dataTableOutput("dt"),
+      id = "custom_supr")
+  })
+
 
   output$dt <- DT::renderDataTable({
     req(all_files())
     dt <- all_files()
-
     dt$Edit <- input_btns("edit_user", uniquenames(), "Edit user", icon("pencil-square-o"), status = "primary")
     dt$Remove <- input_btns("remove_user", uniquenames(), "Delete user", icon("trash-o"), status = "danger")
     dt$Select <- input_checkbox_ui("remove_mult_users", uniquenames())
@@ -358,7 +368,10 @@ server <- function(input, output, session) {
 
   observeEvent(input$removed_user, {
     ##Write yaml edited
-
+    print("supressss")
+    print(tools::file_path_sans_ext(supred_raw()$names))
+    print(supred_raw()$date_time)
+    print(tools::file_ext(supred_raw()$names))
     supress_file_in_yaml(yml(),
                          tools::file_path_sans_ext(supred_raw()$names),
                          supred_raw()$date_time,
@@ -382,6 +395,60 @@ server <- function(input, output, session) {
 
   })
   ##End supress file
+
+  ##Remove multiple
+  r_selected_users <- callModule(module = input_checkbox, id = "remove_mult_users")
+
+  # # # Remove all selected users
+  output$supress_all <- renderUI({
+    if(nrow(supred_raw_all())>1){
+      actionButton(
+        inputId = "remove_selected_users",
+        label = "Remove selected files",
+        class = "btn-danger pull-right",
+        icon = icon("trash-o"))
+    }
+  })
+
+
+  for_up3 <- reactiveValues(rec = 1)
+
+  supred_raw_all <- reactive({
+    selected_users <- r_selected_users()
+    dt <- all_files()
+    all_names <- uniquenames()
+    dt_sel <- dt[all_names %in%  r_selected_users()]
+    dt_sel
+  })
+
+  observeEvent(input$remove_selected_users, {
+    ##Write yaml edited
+
+    for(i in 1:nrow(supred_raw_all()))
+    {
+
+      supred_raw <- supred_raw_all()[i]
+      supress_file_in_yaml(yml(),
+                           tools::file_path_sans_ext(supred_raw$names),
+                           supred_raw$date_time,
+                           tools::file_ext(supred_raw$names))
+
+      if(!is.null(input$scenario_dir_desc)){
+        file.remove(file.path(save_dir,input$scenario_dir_desc,
+                              paste0(tools::file_path_sans_ext(supred_raw$names),"_",
+                                     supred_raw$date_time, ".", tools::file_ext(supred_raw$names))))
+
+      }else{
+        file.remove(file.path(save_dir,
+                              paste0(tools::file_path_sans_ext(supred_raw$names),"_",
+                                     supred_raw$date_time, ".", tools::file_ext(supred_raw$names))))
+
+      }
+
+    }
+    for_up3$rec <- for_up3$rec + 1
+
+  })
 
 }
 

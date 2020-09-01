@@ -22,15 +22,6 @@ supress_file_in_yaml <- function(yml, name, datetime, extand){
   select_raw <- NULL
   for(i in 1:length(yml_info)){
     yml_tp <- yml_info[[i]]
-    print(yml_tp)
-    print("here")
-    print("name")
-    print(yml_tp$name)
-    print(name)
-    print("date_upload")
-    print((yml_tp$name == name &&
-             yml_tp$date_upload == datetime &&
-             yml_tp$extension == extand))
     if(yml_tp$name == name &&
        yml_tp$date_upload == datetime &&
        yml_tp$extension == extand){
