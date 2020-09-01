@@ -1,0 +1,10 @@
+- name: toto2
+  name_t: toto2_20200831_142716
+  date_upload: 20200831_142716
+  extension: csv
+  description: My file 2
+- name: toto
+  name_t: toto_20200831_142715
+  date_upload: 20200831_142715
+  extension: csv
+  description: My file desc
