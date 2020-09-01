@@ -75,7 +75,6 @@ server <- function(input, output, session) {
 
 
   observeEvent(input$create_scenario_dir_bis, {
-
     shiny::showModal(shiny::modalDialog(
       title = "Nouveau sous-dossier",
       shiny::textInput("scenario_dir_desc", "Veuillez donner un nom au sous-dossier !", value="", width = "100%"),
@@ -138,27 +137,26 @@ server <- function(input, output, session) {
     }
   })
 
- yml <- reactive({
-   print("here")
-   print(input$select_scenario_dir)
-   print("here")
-   req(input$select_scenario_dir)
-   print("heref")
-   print(input$select_scenario_dir)
-   file.path(save_dir,input$select_scenario_dir, "files_desc.yaml")
+  yml <- reactive({
+    req(input$select_scenario_dir)
 
- })
+    print(input$select_scenario_dir)
+    file.path(save_dir,input$select_scenario_dir, "files_desc.yaml")
+
+  })
   ###End gestion dossier
 
   all_files <- reactive({
     input$added_file
     input$select_scenario_dir
-    print(yml())
+    for_up$rec
+    for_up2$rec
+    print("edited!!")
     if(!file.exists(yml()))return(NULL)
     yaml_to_dt(yml())
   })
 
-  # launch modal to add a new user
+  # launch modal to add a new file
   observeEvent(input$add_file, {
     showModal(modalDialog(
       title = "Add a file",
@@ -189,23 +187,57 @@ server <- function(input, output, session) {
     )
   })
 
+  date_save <- reactive({
+    input$added_file
+    .convert_date_time(Sys.time())
+  })
+  ##Add a file
   observeEvent(input$added_file, {
-    add_file_in_yaml(yml(), name = input$file_name, datetime = .convert_date_time(Sys.time()),
+    ##To yaml
+    add_file_in_yaml(yml(), name = input$file_name, datetime = date_save(),
                      extand = tools::file_ext(input$file_load$name),
                      description = input$description)
 
     req(all_files())
     all_files()
 
+    ##To folder
+    input$file_name
+    tpsc <- input$select_scenario_dir
+    if(tpsc == "/"){
+      file.copy(input$file_load$datapath, file.path(save_dir,
+                                                    paste0(input$file_name, "_",
+                                                           date_save(),".",
+                                                           tools::file_ext(input$file_load$name)
+                                                    )))
+    }else{
+      file.copy(input$file_load$datapath, file.path(save_dir,input$select_scenario_dir,
+                                                    paste0(input$file_name, "_",
+                                                           date_save(),".",
+                                                           tools::file_ext(input$file_load$name)
+                                                    )))
+    }
+
+
+  })
+
+
+
+
+  uniquenames <- reactive({
+    req(all_files())
+    dt <- all_files()
+    uniquenames <- paste0(tools::file_path_sans_ext(dt$names), dt$date_time)
+    uniquenames
   })
 
   output$dt <- DT::renderDataTable({
     req(all_files())
     dt <- all_files()
-    uniquenames <- paste0(gsub("[.]", "", dt$names), dt$date_time)
-    dt$Edit <- input_btns("edit_user", uniquenames, "Edit user", icon("pencil-square-o"), status = "primary")
-    dt$Remove <- input_btns("remove_user", uniquenames, "Delete user", icon("trash-o"), status = "danger")
-    dt$Select <- input_checkbox_ui("remove_mult_users", uniquenames)
+
+    dt$Edit <- input_btns("edit_user", uniquenames(), "Edit user", icon("pencil-square-o"), status = "primary")
+    dt$Remove <- input_btns("remove_user", uniquenames(), "Delete user", icon("trash-o"), status = "danger")
+    dt$Select <- input_checkbox_ui("remove_mult_users", uniquenames())
     datatable(
       data = dt,
       colnames = make_title(names(dt)),
@@ -222,6 +254,134 @@ server <- function(input, output, session) {
       )
     )
   })
+
+
+
+
+  edited_raw <- reactive({
+    dt <- all_files()
+    all_names <- uniquenames()
+    dt_sel <- dt[all_names == input$edit_user]
+    dt_sel
+  })
+
+
+
+  ##Edit file
+  observeEvent(input$edit_user, {
+    showModal(modalDialog(
+      title = "Edit file",
+      fluidRow(
+        textInput("file_name_bis", "File name :",
+                  tools::file_path_sans_ext(edited_raw()$names)),
+        p("File extension :", tools::file_ext(edited_raw()$names)),
+        textInput("description_bis", "Description :", edited_raw()$description),
+      ),
+      tags$div(id = "placeholder-edituser-exist"),
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton(
+          inputId = "edited_user",
+          label = "Confirm change",
+          class = "btn-primary",
+          `data-dismiss` = "modal"
+        )
+      )
+    ))
+  })
+
+  for_up <- reactiveValues(rec = 1)
+  observeEvent(input$edited_user, {
+    ##Write yaml edited
+    modif_file_in_yaml(yml(),
+                       tools::file_path_sans_ext(edited_raw()$names),
+                       edited_raw()$date_time,
+                       tools::file_ext(edited_raw()$names),
+                       input$file_name_bis,
+                       edited_raw()$date_time,
+                       tools::file_ext(edited_raw()$names),
+                       input$description_bis)
+
+    if(!is.null(input$scenario_dir_desc)){
+      file.rename(file.path(save_dir,input$scenario_dir_desc,
+                            paste0(tools::file_path_sans_ext(edited_raw()$names),"_",
+                                   edited_raw()$date_time, ".", tools::file_ext(edited_raw()$names))),
+                  file.path(save_dir,input$scenario_dir_desc,
+                            paste0( input$file_name_bis,"_",
+                                    edited_raw()$date_time, ".", tools::file_ext(edited_raw()$names)))
+      )
+    }else{
+
+      file.rename(file.path(save_dir,
+                            paste0(tools::file_path_sans_ext(edited_raw()$names),"_",
+                                   edited_raw()$date_time, ".", tools::file_ext(edited_raw()$names))),
+                  file.path(save_dir,
+                            paste0( input$file_name_bis,"_",
+                                    edited_raw()$date_time, ".", tools::file_ext(edited_raw()$names)))
+      )
+    }
+
+    for_up$rec <- for_up$rec + 1
+
+  })
+  ##End edit file
+
+
+  ##Supress file
+
+
+
+  supred_raw <- reactive({
+    dt <- all_files()
+    all_names <- uniquenames()
+    dt_sel <- dt[all_names == input$remove_user]
+    dt_sel
+  })
+
+  observeEvent(input$remove_user, {
+    showModal(modalDialog(
+      title = "remove file",
+      tags$div(id = "placeholder-edituser-exist"),
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton(
+          inputId = "removed_user",
+          label = "Confirm change",
+          class = "btn-primary",
+          `data-dismiss` = "modal"
+        )
+      )
+    ))
+  })
+
+  for_up2 <- reactiveValues(rec = 1)
+
+  observeEvent(input$removed_user, {
+    ##Write yaml edited
+
+    supress_file_in_yaml(yml(),
+                         tools::file_path_sans_ext(supred_raw()$names),
+                         supred_raw()$date_time,
+                         tools::file_ext(supred_raw()$names))
+
+    if(!is.null(input$scenario_dir_desc)){
+      file.remove(file.path(save_dir,input$scenario_dir_desc,
+                            paste0(tools::file_path_sans_ext(supred_raw()$names),"_",
+                                   supred_raw()$date_time, ".", tools::file_ext(supred_raw()$names))))
+
+    }else{
+      file.remove(file.path(save_dir,
+                            paste0(tools::file_path_sans_ext(supred_raw()$names),"_",
+                                   supred_raw()$date_time, ".", tools::file_ext(supred_raw()$names))))
+
+    }
+
+    #file.remove()
+
+    for_up2$rec <- for_up$rec + 1
+
+  })
+  ##End supress file
 
 }
 

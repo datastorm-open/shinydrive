@@ -22,12 +22,22 @@ supress_file_in_yaml <- function(yml, name, datetime, extand){
   select_raw <- NULL
   for(i in 1:length(yml_info)){
     yml_tp <- yml_info[[i]]
+    print(yml_tp)
+    print("here")
+    print("name")
+    print(yml_tp$name)
+    print(name)
+    print("date_upload")
+    print((yml_tp$name == name &&
+             yml_tp$date_upload == datetime &&
+             yml_tp$extension == extand))
     if(yml_tp$name == name &&
        yml_tp$date_upload == datetime &&
        yml_tp$extension == extand){
       select_raw <- i
     }
   }
+  print("here2")
   #Warning if no raw select
   if(is.null(select_raw)){
     warning("No raw remove")
@@ -69,6 +79,58 @@ add_file_in_yaml <- function(yml,
                             extension = extand,
                             description = description
                             )))
+  yaml::write_yaml(yml_info, yml)
+
+}
+
+
+#' Add an element in yaml
+#'
+#' @param yml yaml path.
+#' @param name File name.
+#' @param datetime file datetime.
+#' @param extand file extand.
+#' @param extand file description.
+#' @examples
+#' \dontrun{
+#'   yml <- "inst/exemple/files_desc.yaml"
+#'   name <- "toto"
+#'   datetime <- "20200831_142715"
+#'   extand <- "csv"
+#'   description <- "My file desc"
+#'   add_file_in_yaml("inst/exemple/files_desc.yaml", "toto", "20200831_142715", "csv")
+#' }
+#'
+#' @importFrom yaml read_yaml write_yaml
+modif_file_in_yaml <- function(yml,
+                             name_old,
+                             datetime_old,
+                             extand_old,
+                             name,
+                             datetime,
+                             extand,
+                             description){
+  #Read yaml
+  yml_info <- yaml::read_yaml(yml)
+
+  #Identify concern raw
+  select_raw <- NULL
+  for(i in 1:length(yml_info)){
+    yml_tp <- yml_info[[i]]
+    if(yml_tp$name == name_old &&
+       yml_tp$date_upload == datetime_old &&
+       yml_tp$extension == extand_old){
+      select_raw <- i
+    }
+  }
+
+  yml_info[select_raw] <-   list(list(name = name,
+                                       name_t = paste0(name,"_", datetime),
+                                       date_upload = datetime,
+                                       extension = extand,
+                                       description = description
+  ))
+
   yaml::write_yaml(yml_info, yml)
 
 }
