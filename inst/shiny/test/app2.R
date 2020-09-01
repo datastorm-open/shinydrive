@@ -201,7 +201,26 @@ server <- function(input, output, session) {
 
   output$dt <- DT::renderDataTable({
     req(all_files())
-    all_files()
+    dt <- all_files()
+    uniquenames <- paste0(gsub("[.]", "", dt$names), dt$date_time)
+    dt$Edit <- input_btns("edit_user", uniquenames, "Edit user", icon("pencil-square-o"), status = "primary")
+    dt$Remove <- input_btns("remove_user", uniquenames, "Delete user", icon("trash-o"), status = "danger")
+    dt$Select <- input_checkbox_ui("remove_mult_users", uniquenames)
+    datatable(
+      data = dt,
+      colnames = make_title(names(dt)),
+      rownames = FALSE,
+      escape = FALSE,
+      selection = "none",
+      # extensions = 'FixedColumns', # bug using FixedColumns on checkbox + update table...
+      options = list(
+        drawCallback = JS("function() {Shiny.bindAll(this.api().table().node());}"),
+        scrollX = TRUE,
+        columnDefs = list(
+          list(width = "50px", targets = (ncol(dt)-3):(ncol(dt)-1))
+        )
+      )
+    )
   })
 
 }
