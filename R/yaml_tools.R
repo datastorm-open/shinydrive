@@ -28,7 +28,7 @@ supress_file_in_yaml <- function(yml, name, datetime, extand){
       select_raw <- i
     }
   }
-  print("here2")
+
   #Warning if no raw select
   if(is.null(select_raw)){
     warning("No raw remove")
