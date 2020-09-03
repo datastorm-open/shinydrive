@@ -1,11 +1,3 @@
-
-library(shiny)
-library(htmltools)
-library(R.utils)
-library(shinyFiles)
-library(data.table)
-tran <- fread(system.file("translate/translate.csv", package = "shinyfilesmanager"))
-
 #' Ui for file management module
 #'
 #' Ui part for file management module, it's a shiny module used for file gestion.
@@ -13,7 +5,7 @@ tran <- fread(system.file("translate/translate.csv", package = "shinyfilesmanage
 #' @param lan language for module avialable are FR and EN. Contribution are welcome :).
 #' @param tran file for translation
 #'
-#'
+#' @import shiny htmltools R.utils shinyFiles data.table
 #' @examples
 #' \dontrun{
 #' ui <- fluidPage(
