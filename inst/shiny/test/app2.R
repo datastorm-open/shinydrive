@@ -311,11 +311,10 @@ server <- function(input, output, session) {
   observeEvent(input$download_user, {
     showModal(modalDialog(
       title = "Download file",
-      fluidRow(
-        p(      paste0("File : ", tools::file_path_sans_ext(download_user_r()$names),  ".",
-                       tools::file_ext(download_user_r()$names)))
-      ),
-      p("Saved : ", download_user_r()$date_time),
+      ui_describ_user(tools::file_path_sans_ext(download_user_r()$names),
+                      download_user_r()$date_time,
+                      download_user_r()$description,
+                      tools::file_ext(download_user_r()$names)),
       tags$div(id = "placeholder-edituser-exist"),
       footer = tagList(
         modalButton("Cancel"),
@@ -432,6 +431,11 @@ server <- function(input, output, session) {
   observeEvent(input$remove_user, {
     showModal(modalDialog(
       title = "remove file",
+        ui_describ_user(tools::file_path_sans_ext(supred_raw()$names),
+                        supred_raw()$date_time,
+                        supred_raw()$description,
+                        tools::file_ext(supred_raw()$names))
+      ,
       tags$div(id = "placeholder-edituser-exist"),
       footer = tagList(
         modalButton("Cancel"),
@@ -479,7 +483,7 @@ server <- function(input, output, session) {
   r_selected_users <- callModule(module = input_checkbox, id = "remove_mult_users")
 
 
-  # # # Remove all selected users
+  # # # Remove all selected files
   output$supress_all <- renderUI({
     for_up$rec
     for_up2$rec
@@ -487,11 +491,19 @@ server <- function(input, output, session) {
     r_selected_users()
 
     if(nrow(supred_raw_all()) > 1){
-      actionButton(
-        inputId = "remove_selected_users",
-        label = "Remove selected files",
-        class = "btn-danger pull-right",
-        icon = icon("trash-o"))
+      div(
+        actionButton(
+          inputId = "remove_selected_users",
+          label = "Remove selected files",
+          class = "btn-danger pull-right",
+          icon = icon("trash-o")),
+        p(),
+        actionButton(
+          inputId = "download_delected_files",
+          label = "Download selected files",
+          class = "btn-success pull-right",
+          icon = icon("download"))
+      )
     }
   })
 
@@ -508,18 +520,43 @@ server <- function(input, output, session) {
 
   supred_raw_all <- reactive({
     req(all_output())
-    print("tootoo")
-    print(uniquenames())
-    print(all_output())
     dt_sel <- all_files()[paste0(uniquenames(), ctname()) %in%  all_output()]
     dt_sel
   })
 
-  observeEvent(input$remove_selected_users, {
-    ##Write yaml edited
 
-    print("toto333")
-    print(supred_raw_all())
+
+  observeEvent(input$remove_selected_users, {
+    showModal(modalDialog(
+      title = "Remove files",
+      tags$div(id = "placeholder-edituser-exist"),
+      div(
+
+      sapply(1:nrow(supred_raw_all()), function(X){
+        supred_raw_all <- supred_raw_all()[X]
+        print(supred_raw_all)
+        p(tags$b(h4(paste0("File ", X))),
+        ui_describ_user(tools::file_path_sans_ext(supred_raw_all$names),
+                        supred_raw_all$date_time,
+                        supred_raw_all$description,
+                        tools::file_ext(supred_raw_all$names)),style = "border: 1px solid silver;")
+      }, simplify = FALSE)
+      ),
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton(
+          inputId = "removed_selected_users",
+          label = "Confirm change",
+          class = "btn-primary",
+          `data-dismiss` = "modal"
+        )
+      )
+    ))
+  })
+
+
+  observeEvent(input$removed_selected_users, {
+    ##Write yaml edited
     for(i in 1:nrow(supred_raw_all()))
     {
 
@@ -547,6 +584,9 @@ server <- function(input, output, session) {
     for_up3$rec <- for_up3$rec + 1
 
   })
+  ## And remove all users
+
+
 
 }
 

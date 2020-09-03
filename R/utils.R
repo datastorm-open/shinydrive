@@ -104,3 +104,21 @@ toggleBtn <- function(session, inputId, type = "disable") {
     message = list(inputId = inputId, type = type)
   )
 }
+
+
+#' Little repeat UI
+#'
+#' @param filename file name
+#' @param filedate file date
+#' @param filedesc file desc
+#' @param fileext file ext
+#'
+#' @noRd
+ui_describ_user <- function(filename, filedate, filedesc, fileext){
+  fluidRow(p(paste0("File : ", filename,".", fileext)),
+           hr(),
+           p(tags$b("Details")),
+           p(paste0("Date : ", filedate)),
+           p(paste0("Description : ", filedesc))
+           )
+}
