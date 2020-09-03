@@ -114,11 +114,11 @@ toggleBtn <- function(session, inputId, type = "disable") {
 #' @param fileext file ext
 #'
 #' @noRd
-ui_describ_user <- function(filename, filedate, filedesc, fileext){
-  fluidRow(p(paste0("File : ", filename,".", fileext)),
+ui_describ_user <- function(filename, filedate, filedesc, fileext, lan, tran){
+  fluidRow(p(paste0( tran[id == 32][[lan]], filename,".", fileext)),
            hr(),
-           p(tags$b("Details")),
-           p(paste0("Date : ", filedate)),
-           p(paste0("Description : ", filedesc))
+           p(tags$b(tran[id == 36][[lan]])),
+           p(paste0(tran[id == 37][[lan]], filedate)),
+           p(paste0(tran[id == 38][[lan]], filedesc))
            )
 }

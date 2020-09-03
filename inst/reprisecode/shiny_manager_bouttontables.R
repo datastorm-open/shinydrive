@@ -17,7 +17,7 @@ input_btns <- function(inputId, users, tooltip, icon, status = "primary") {
         ),
         icon,
         `data-toggle` = "tooltip",
-        `data-title` = "",
+        `data-title` = tooltip,
         `data-container` = "body"
       )
       res <- tagList(res, tags$script(HTML("$('[data-toggle=\"tooltip\"]').tooltip();")))
