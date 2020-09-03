@@ -254,15 +254,11 @@ server <- function(input, output, session) {
     dt <- all_files()
 
     if(user()){
-
-    dt$Edit <- input_btns("edit_user", uniquenames(), "Edit user", icon("pencil-square-o"), status = "primary")
-
-    dt$Remove <- input_btns("remove_user", uniquenames(), "Delete user", icon("trash-o"), status = "danger")
-
-
+      dt$Edit <- input_btns("edit_user", uniquenames(), "Edit user", icon("pencil-square-o"), status = "primary")
+      dt$Remove <- input_btns("remove_user", uniquenames(), "Delete user", icon("trash-o"), status = "danger")
     }
 
-    dt$Download <- input_btns("download_user", uniquenames(), "Edit user", icon("file-export"), status = "primary")
+    dt$Download <- input_btns("download_user", uniquenames(), "Edit user", icon("file-export"), status = "success")
 
 
     dt$Select <- input_checkbox_ui("remove_mult_users",paste0(uniquenames(), ctname()), checked = FALSE)
