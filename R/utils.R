@@ -1,3 +1,4 @@
+#' @noRd
 .convert_date_time <- function(X){
   X <- gsub("-", "", X)
   X <- gsub(":", "", X)
@@ -9,13 +10,8 @@
   unlist(lapply(yml_info, function(X){X[elem]}))
 }
 
-#' Read yaml conf and make table
-#'
-#' @param yml yaml path.
-#'
-#' @importFrom yaml read_yaml
-#' @importFrom data.table data.table
-yaml_to_dt <- function(yml){
+
+.yaml_to_dt <- function(yml){
   yml_info <- yaml::read_yaml(yml)
   if(is.null(yml_info))return(NULL)
   names <- paste0(.gyc(yml_info, "name"), ".", .gyc(yml_info, "extension"))
@@ -28,53 +24,13 @@ yaml_to_dt <- function(yml){
 
 
 
-#' Module de sauvegarde/chargement de scénarios. Partie UI
+#' Ui for check box
 #'
-#' @param id : character. id du module
+#' @param input input
+#' @param output output
+#' @param session shiny session.
 #'
-moduleScenariosUI <- function(id) {
-  ns <- NS(id)
-  tagList(
-    fluidRow(
-      column(12,
-             fluidRow(
-               column(2,
-                      div(h4("Sous-dossiers : "), align = "center")
-
-               ),
-               column(2,
-                      style = "margin-left: 15px;",
-                      selectInput(ns("select_scenario_dir"), NULL, choices= NULL , selected = NULL, width = "100%")
-
-               ),
-               column(7,
-                      actionButton(ns("create_scenario_dir_bis"),'Créer', icon = icon("plus")),
-                      actionButton(ns("rename_scenario_dir"),'Renommer', icon = icon("edit")),
-                      uiOutput(ns("display_delete_dir_button"), inline = T)
-               )
-             ),
-             conditionalPanel(condition = paste0("output['",ns("have_link_table"), "']"," === true") ,
-                              # box pour la liste des scénarios disponible
-                              box(
-                                title = "Liste des scénarios disponibles", collapsible = T, width = 12, status = "primary",
-                                solidHeader = TRUE,
-                                fluidRow(
-                                  column(12,DT::dataTableOutput(ns("list_scenarios")))
-                                )
-                              ),
-
-                              conditionalPanel(condition = paste0("output['", ns("have_sel_row"), "']"),
-                                               uiOutput(ns("val_down_btn"))
-                              )
-             ),
-             conditionalPanel(condition = paste0("output['",ns("have_link_table"), "']"," === false"),
-                              div(h3("Pas de scénarios disponibles"), align = "center")
-             )
-      )
-    )
-  )
-}
-
+#' @noRd
 input_checkbox <- function(input, output, session) {
   reac <- reactive({
     inputs <- reactiveValuesToList(input)
@@ -84,6 +40,7 @@ input_checkbox <- function(input, output, session) {
 
   return(reac)
 }
+
 
 dropFalse <- function(x) {
   isFALSE <- Negate(isTRUE)
@@ -121,4 +78,57 @@ ui_describ_user <- function(filename, filedate, filedesc, fileext, lan, tran){
            p(paste0(tran[id == 37][[lan]], filedate)),
            p(paste0(tran[id == 38][[lan]], filedesc))
            )
+}
+
+
+
+
+
+input_btns <- function(inputId, users, tooltip, icon, status = "primary") {
+  tag <- lapply(
+    X = users,
+    FUN = function(x) {
+      res <- tags$button(
+        class = paste0("btn btn-", status),
+        style = "float: right;",
+        onclick = sprintf(
+          "Shiny.setInputValue('%s', '%s',  {priority: 'event'})",
+          inputId, x
+        ),
+        icon,
+        `data-toggle` = "tooltip",
+        `data-title` = tooltip,
+        `data-container` = "body"
+      )
+      res <- tagList(res, tags$script(HTML("$('[data-toggle=\"tooltip\"]').tooltip();")))
+      doRenderTags(res)
+    }
+  )
+  unlist(tag, use.names = FALSE)
+}
+
+
+
+
+input_checkbox_ui <- function(id, users, checked = FALSE) {
+  ns <- NS(id)
+  tag <- lapply(
+    X = users,
+    FUN = function(x) {
+      tp_name <- paste0("#", id, "-", "check_", x)
+      removeUI(tp_name)
+      # res <- checkboxInput(inputId = ns(paste0("check_", x)), label = NULL, value = FALSE)
+      res <- tags$input(id = ns(paste0("check_", x)), type = "checkbox", style = "float: right;")
+      if(checked) res$attribs$checked <- "checked"
+      doRenderTags(res)
+    }
+  )
+  unlist(tag, use.names = FALSE)
+}
+
+#' @importFrom R.utils capitalize
+make_title <- function(x) {
+  capitalize(gsub(
+    pattern = "_", replacement = " ", x = x
+  ))
 }

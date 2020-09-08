@@ -5,7 +5,9 @@
 #' @param lan language for module avialable are FR and EN. Contribution are welcome :).
 #' @param tran file for translation
 #'
-#' @import shiny htmltools R.utils shinyFiles data.table
+#' @import shiny htmltools shinyFiles data.table
+#'
+#' @importFrom DT datatable
 #' @examples
 #' \dontrun{
 #' ui <- fluidPage(
@@ -19,6 +21,7 @@
 #'
 #' }
 #'
+#' @export
 mangement_ui <- function(id,
                          lan = "EN",
                          tran = fread(system.file("translate/translate.csv", package = "shinyfilesmanager"))){
@@ -76,6 +79,7 @@ mangement_ui <- function(id,
 #' @param lan language for module avialable are FR and EN. Contribution are welcome :).
 #' @param tran file for translation
 #'
+#' @importFrom utils zip
 #'
 #' @examples
 #' \dontrun{
@@ -90,8 +94,10 @@ mangement_ui <- function(id,
 #'
 #' }
 #'
+#' @export
 managment_server <- function(input, output, session, save_dir, admin_user = TRUE,
-                             lan = "EN", tran = fread(system.file("translate/translate.csv", package = "shinyfilesmanager"))) {
+                             lan = "EN", tran = fread(system.file("translate/translate.csv",
+                                                                  package = "shinyfilesmanager"))) {
 
   ns <- session$ns
 
@@ -269,7 +275,7 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
     input$removed_user
     #print("edited!!")
     if(!file.exists(yml()))return(NULL)
-    yaml_to_dt(yml())
+    .yaml_to_dt(yml())
   })
 
   # launch modal to add a new file
@@ -320,7 +326,7 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
     ##To folder
     input$file_name
     tpsc <- input$select_scenario_dir
-    if(tpsc == "/"){
+    if(tpsc == ""){
       file.copy(input$file_load$datapath, file.path(save_dir,
                                                     paste0(input$file_name, "_",
                                                            date_save(),".",
@@ -357,7 +363,7 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
   output$dt <- DT::renderDataTable({
     req(all_files())
     dt <- all_files()
-
+    if(nrow(dt) == 0)return(NULL)
     if(user()){
       dt$Edit <- input_btns(ns("edit_user"), uniquenames(), tran[id == 16][[lan]], icon("pencil-square-o"), status = "primary")
       dt$Remove <- input_btns(ns("remove_user"), uniquenames(), tran[id == 17][[lan]], icon("trash-o"), status = "danger")
