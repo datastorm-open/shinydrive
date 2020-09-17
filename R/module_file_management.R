@@ -116,16 +116,23 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
   observe({
     list.available.dirs <- list.available.dirs()
 
+    isolate({
+      print("select_scenario_dir")
+      print(input$select_scenario_dir)
+      print("scenario_dir_desc")
+      print(input$scenario_dir_desc)
+    })
     if (!is.null(list.available.dirs) ){
       updateSelectInput(session,
                         "select_scenario_dir",
-                        choices = paste("/",c("",list.available.dirs), sep=""),
-                        selected = "/")
-      updateSelectInput(session,
-                        "select_scenario_dir_save",
-                        choices = paste("/",c("",list.available.dirs), sep=""),
-                        selected = paste0("/", input$scenario_dir_desc))
+                        choices = c("/",list.available.dirs),
+                        selected = input$scenario_dir_desc)
+      # updateSelectInput(session,
+      #                   "select_scenario_dir_save",
+      #                   choices = paste("/",c("",list.available.dirs), sep=""),
+      #                   selected = paste0("/", input$scenario_dir_desc))
     }
+
   })
 
 
@@ -260,16 +267,12 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
 
   yml <- reactive({
     req(input$select_scenario_dir)
-    if(!is.null(input$scenario_dir_desc)){
-
-    re <- file.path(save_dir,input$select_scenario_dir, "files_desc.yaml")
-
+    if(input$select_scenario_dir !="/"){
+      file.path(save_dir,input$select_scenario_dir, "files_desc.yaml")
     }else{
-      re <-  file.path(save_dir, "files_desc.yaml")
-
+      file.path(save_dir, "files_desc.yaml")
     }
-    if(!(file.exists(re))){file.create(re)}
-    re
+
   })
   ###End gestion dossier
 
@@ -323,6 +326,11 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
   ##Add a file
   observeEvent(input$added_file, {
     ##To yaml
+
+    if(!(file.exists(yml()))){file.create(yml())}
+    print('toto')
+    print(yml())
+
     add_file_in_yaml(yml(), name = input$file_name, datetime = date_save(),
                      extand = tools::file_ext(input$file_load$name),
                      description = input$description)
@@ -331,22 +339,20 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
     all_files()
 
     ##To folder
-    print("here")
-    print(input$select_scenario_dir)
-    input$file_name
-    if(!is.null(input$select_scenario_dir)){
-      file.copy(input$file_load$datapath, file.path(save_dir,
-                                                    paste0(input$file_name, "_",
-                                                           date_save(),".",
-                                                           tools::file_ext(input$file_load$name)
-                                                    )))
-    }else{
+    if(input$select_scenario_dir != "/"){
       file.copy(input$file_load$datapath, file.path(save_dir,input$select_scenario_dir,
                                                     paste0(input$file_name, "_",
                                                            date_save(),".",
                                                            tools::file_ext(input$file_load$name)
                                                     )))
+    }else{
+      file.copy(input$file_load$datapath, file.path(save_dir,
+                                                    paste0(input$file_name, "_",
+                                                           date_save(),".",
+                                                           tools::file_ext(input$file_load$name)
+                                                    )))
     }
+    print("FFFFFFFFFFFFFFFFFF")
     for_up$rec <- for_up$rec + 1
 
   })
@@ -434,8 +440,8 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
   })
 
   download_user_rf <- reactive({
-    if(!is.null(input$scenario_dir_desc)){
-      fp <- file.path(save_dir,input$scenario_dir_desc,
+    if(input$select_scenario_dir != "/"){
+      fp <- file.path(save_dir,input$select_scenario_dir,
                       paste0(tools::file_path_sans_ext(download_user_r()$names),"_",
                              download_user_r()$date_time, ".",
                              tools::file_ext(download_user_r()$names)))
@@ -530,12 +536,12 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
                        tools::file_ext(edited_raw()$names),
                        input$description_bis)
 
-    if(!is.null(input$scenario_dir_desc)){
-      file.rename(file.path(save_dir,input$scenario_dir_desc,
+    if(input$select_scenario_dir != "/"){
+      file.rename(file.path(save_dir,input$select_scenario_dir,
                             paste0(tools::file_path_sans_ext(edited_raw()$names),"_",
                                    edited_raw()$date_time, ".",
                                    tools::file_ext(edited_raw()$names))),
-                  file.path(save_dir,input$scenario_dir_desc,
+                  file.path(save_dir,input$select_scenario_dir,
                             paste0( input$file_name_bis,"_",
                                     edited_raw()$date_time, ".",
                                     tools::file_ext(edited_raw()$names)))
@@ -600,8 +606,8 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
                          supred_raw()$date_time,
                          tools::file_ext(supred_raw()$names))
 
-    if(!is.null(input$scenario_dir_desc)){
-      file.remove(file.path(save_dir,input$scenario_dir_desc,
+    if(input$select_scenario_dir != "/"){
+      file.remove(file.path(save_dir,input$select_scenario_dir,
                             paste0(tools::file_path_sans_ext(supred_raw()$names),"_",
                                    supred_raw()$date_time, ".",
                                    tools::file_ext(supred_raw()$names))))
@@ -709,8 +715,8 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
                            tools::file_ext(supred_raw$names))
 
 
-      if(!is.null(input$scenario_dir_desc)){
-        file.remove(file.path(save_dir,input$scenario_dir_desc,
+      if(input$select_scenario_dir != "/"){
+        file.remove(file.path(save_dir,input$select_scenario_dir,
                               paste0(tools::file_path_sans_ext(supred_raw$names), "_",
                                      supred_raw$date_time, ".",
                                      tools::file_ext(supred_raw$names))))
@@ -757,8 +763,8 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
   download_all_user_rf <- reactive({
     sapply(1:nrow(supred_raw_all()), function(i){
       download_user_r <- supred_raw_all()[i]
-      if(!is.null(input$scenario_dir_desc)){
-        fp <- file.path(save_dir,input$scenario_dir_desc,
+      if((input$select_scenario_dir != "/")){
+        fp <- file.path(save_dir,input$select_scenario_dir,
                         paste0(tools::file_path_sans_ext(download_user_r$names),"_",
                                download_user_r$date_time, ".",
                                tools::file_ext(download_user_r$names)))
