@@ -18,4 +18,5 @@ Imports:
     shinyFiles,
     yaml,
     DT,
-    R.utils
+    R.utils,
+    htmlwidgets

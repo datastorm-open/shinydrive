@@ -5,7 +5,7 @@
 #' @param lan language for module avialable are FR and EN. Contribution are welcome :).
 #' @param tran file for translation
 #'
-#' @import shiny htmltools shinyFiles data.table
+#' @import shiny htmltools shinyFiles data.table htmlwidgets
 #'
 #' @importFrom DT datatable
 #' @examples
@@ -260,9 +260,16 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
 
   yml <- reactive({
     req(input$select_scenario_dir)
+    if(!is.null(input$scenario_dir_desc)){
 
-    file.path(save_dir,input$select_scenario_dir, "files_desc.yaml")
+    re <- file.path(save_dir,input$select_scenario_dir, "files_desc.yaml")
 
+    }else{
+      re <-  file.path(save_dir, "files_desc.yaml")
+
+    }
+    if(!(file.exists(re))){file.create(re)}
+    re
   })
   ###End gestion dossier
 
@@ -324,9 +331,10 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
     all_files()
 
     ##To folder
+    print("here")
+    print(input$select_scenario_dir)
     input$file_name
-    tpsc <- input$select_scenario_dir
-    if(tpsc == ""){
+    if(!is.null(input$select_scenario_dir)){
       file.copy(input$file_load$datapath, file.path(save_dir,
                                                     paste0(input$file_name, "_",
                                                            date_save(),".",
@@ -374,7 +382,9 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
 
     dt$Select <- input_checkbox_ui(ns("remove_mult_users"),paste0(uniquenames(), ctname()), checked = FALSE)
 
+
     if(admin_user){
+      if(ncol(dt)<7){return(NULL)}
       names(dt) <- c( tran[id == 19][[lan]],
                       tran[id == 20][[lan]],
                       tran[id == 21][[lan]],
@@ -383,6 +393,8 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
                       tran[id == 24][[lan]],
                       tran[id == 25][[lan]])
     }else{
+      if(ncol(dt)<5){return(NULL)}
+
       names(dt) <- c( tran[id == 19][[lan]],
                       tran[id == 20][[lan]],
                       tran[id == 21][[lan]],
@@ -571,7 +583,7 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
         modalButton(tran[id == 7][[lan]]),
         actionButton(
           inputId = ns("removed_user"),
-          label = tran[id == 27][[lan]],
+          label = tran[id == 43][[lan]],
           class = "btn-primary",
           `data-dismiss` = "modal"
         )
@@ -695,6 +707,7 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
                            tools::file_path_sans_ext(supred_raw$names),
                            supred_raw$date_time,
                            tools::file_ext(supred_raw$names))
+
 
       if(!is.null(input$scenario_dir_desc)){
         file.remove(file.path(save_dir,input$scenario_dir_desc,
