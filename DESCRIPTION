@@ -1,6 +1,6 @@
 Package: shinyfilesmanager
 Type: Package
-Title: Module shiny for file management.
+Title: Module shiny for file management
 Version: 0.1.0
 Authors@R: c(
     person("Titouan", "Robert", email = "titouan.robert@datastorm.fr", role = c("aut", "cre"))

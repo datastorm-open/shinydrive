@@ -18,11 +18,19 @@ modif_file_in_yaml(
 \arguments{
 \item{yml}{yaml path.}
 
+\item{name_old}{old File name.}
+
+\item{datetime_old}{old file datetime.}
+
+\item{extand_old}{old ext.}
+
 \item{name}{File name.}
 
 \item{datetime}{file datetime.}
 
-\item{extand}{file description.}
+\item{extand}{file extand.}
+
+\item{description}{description.}
 }
 \description{
 Add an element in yaml

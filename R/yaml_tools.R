@@ -45,7 +45,7 @@ supress_file_in_yaml <- function(yml, name, datetime, extand){
 #' @param name File name.
 #' @param datetime file datetime.
 #' @param extand file extand.
-#' @param extand file description.
+#' @param description file description.
 #' @examples
 #' \dontrun{
 #'   yml <- "inst/exemple/files_desc.yaml"
@@ -78,10 +78,13 @@ add_file_in_yaml <- function(yml,
 #' Add an element in yaml
 #'
 #' @param yml yaml path.
+#' @param name_old old File name.
 #' @param name File name.
 #' @param datetime file datetime.
+#' @param datetime_old old file datetime.
 #' @param extand file extand.
-#' @param extand file description.
+#' @param extand_old old ext.
+#' @param description description.
 #' @examples
 #' \dontrun{
 #'   yml <- "inst/exemple/files_desc.yaml"
@@ -93,6 +96,8 @@ add_file_in_yaml <- function(yml,
 #' }
 #'
 #' @importFrom yaml read_yaml write_yaml
+#'
+#'
 modif_file_in_yaml <- function(yml,
                              name_old,
                              datetime_old,

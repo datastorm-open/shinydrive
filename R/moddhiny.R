@@ -75,7 +75,7 @@ mangement_ui <- function(id,
 #' @param output shiny output.
 #' @param session shiny session.
 #' @param save_dir directory for init getwd().
-#' @param id Module id.
+#' @param admin_user admin user or not.
 #' @param lan language for module avialable are FR and EN. Contribution are welcome :).
 #' @param tran file for translation
 #'
@@ -100,7 +100,7 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
                                                                   package = "shinyfilesmanager"))) {
 
   ns <- session$ns
-
+  id <- reactive(NULL)
   ##Admin TRUE (pass to module at final version)
   user <- reactive(admin_user)
   output$user <- user
@@ -168,7 +168,7 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
       shiny::showModal(shiny::modalDialog(
         easyClose = TRUE,
         footer = NULL,
-        "Aucun sous-dossier présent"
+        "Not sub folder prsent"
       ))
     }
 
@@ -185,7 +185,7 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
         easyClose = FALSE,
         footer = fluidRow(
           column(6, div(actionButton(ns("rename_scenario_dir_selected"),  tran[id == 3][[lan]]), align = "center")),
-          column(6, div(modalButton("Annuler"), align = "center")
+          column(6, div(modalButton(tran[id == 7][[lan]]), align = "center")
           )
         )
       ))
@@ -197,7 +197,7 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
         easyClose = FALSE,
         footer = fluidRow(
           column(6, div(actionButton(ns("rename_scenario_dir_selected"),  tran[id == 3][[lan]]), align = "center")),
-          column(6, div(modalButton("Annuler"), align = "center")
+          column(6, div(modalButton(tran[id == 7][[lan]]), align = "center")
           )
         )
       ))
@@ -218,7 +218,7 @@ managment_server <- function(input, output, session, save_dir, admin_user = TRUE
 
   observeEvent(input$create_scenario_dir_ok,{
     if (input$scenario_dir_desc == ""){
-      # Donner un description au scénario
+      # Donner un description au scenario
       shiny::showModal(shiny::modalDialog(
         title = tran[id == 5][[lan]],
         shiny::textInput(ns("scenario_dir_desc"), tran[id == 6][[lan]], value="", width = "100%"),

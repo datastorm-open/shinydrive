@@ -13,7 +13,9 @@ add_file_in_yaml(yml, name, datetime, extand, description)
 
 \item{datetime}{file datetime.}
 
-\item{extand}{file description.}
+\item{extand}{file extand.}
+
+\item{description}{file description.}
 }
 \description{
 Add an element in yaml

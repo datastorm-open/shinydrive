@@ -72,6 +72,7 @@ toggleBtn <- function(session, inputId, type = "disable") {
 #'
 #' @noRd
 ui_describ_user <- function(filename, filedate, filedesc, fileext, lan, tran){
+  id <- NULL
   fluidRow(p(paste0( tran[id == 32][[lan]], filename,".", fileext)),
            hr(),
            p(tags$b(tran[id == 36][[lan]])),
