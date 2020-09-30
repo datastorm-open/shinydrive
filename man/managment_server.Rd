@@ -8,6 +8,7 @@ managment_server(
   input,
   output,
   session,
+  id,
   save_dir,
   admin_user = TRUE,
   lan = "EN",
@@ -15,27 +16,30 @@ managment_server(
 )
 }
 \arguments{
-\item{input}{shiny input.}
+\item{input}{shiny input}
 
-\item{output}{shiny output.}
+\item{output}{shiny input}
 
-\item{session}{shiny session.}
+\item{session}{shiny input}
 
-\item{save_dir}{directory for init getwd().}
+\item{id}{\code{character}. shiny id to allow multiple instanciation.}
 
-\item{admin_user}{admin user or not.}
+\item{save_dir}{\code{character}. Directory of the files.}
 
-\item{lan}{language for module avialable are FR and EN. Contribution are welcome :).}
+\item{admin_user}{\code{boolean} (TRUE). Admin user or not.}
 
-\item{tran}{file for translation}
+\item{lan}{\code{character} ("EN"). Language to be used in the module (FR and EN available... contributions are welcome :)).}
+
+\item{tran}{\code{data.frame} (fread(system.file("translate/translate.csv", package = "shinyfilesmanager"))). File for translation.}
 }
 \description{
-server part for file management module, it's a shiny module used for file gestion.
+server part for file management module, a shiny module for file management.
 }
 \examples{
 \dontrun{
+
 ui <- fluidPage(
-  mangement_ui(id = "idm", lan = "EN")
+  management_ui(id = "idm", lan = "EN")
 )
 server <- function(input, output, session) {
   callModule(module = managment_server,"idm", lan = "EN", session = session,
@@ -44,5 +48,4 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 
 }
-
 }

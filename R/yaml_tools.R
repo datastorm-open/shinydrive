@@ -65,11 +65,11 @@ add_file_in_yaml <- function(yml,
   #Read yaml
   yml_info <- yaml::read_yaml(yml)
   yml_info <- c(yml_info, list(list(name = name,
-                            name_t = paste0(name,"_", datetime),
-                            date_upload = datetime,
-                            extension = extand,
-                            description = description
-                            )))
+                                    name_t = paste0(name,"_", datetime),
+                                    date_upload = datetime,
+                                    extension = extand,
+                                    description = description
+  )))
   yaml::write_yaml(yml_info, yml)
 
 }
@@ -99,13 +99,13 @@ add_file_in_yaml <- function(yml,
 #'
 #'
 modif_file_in_yaml <- function(yml,
-                             name_old,
-                             datetime_old,
-                             extand_old,
-                             name,
-                             datetime,
-                             extand,
-                             description){
+                               name_old,
+                               datetime_old,
+                               extand_old,
+                               name,
+                               datetime,
+                               extand,
+                               description){
   #Read yaml
   yml_info <- yaml::read_yaml(yml)
 
@@ -121,10 +121,10 @@ modif_file_in_yaml <- function(yml,
   }
 
   yml_info[select_raw] <-   list(list(name = name,
-                                       name_t = paste0(name,"_", datetime),
-                                       date_upload = datetime,
-                                       extension = extand,
-                                       description = description
+                                      name_t = paste0(name,"_", datetime),
+                                      date_upload = datetime,
+                                      extension = extand,
+                                      description = description
   ))
 
   yaml::write_yaml(yml_info, yml)

@@ -71,7 +71,7 @@ toggleBtn <- function(session, inputId, type = "disable") {
 #' @param fileext file ext
 #'
 #' @noRd
-ui_describ_user <- function(filename, filedate, filedesc, fileext, lan, tran){
+ui_describ_file <- function(filename, filedate, filedesc, fileext, lan, tran){
   id <- NULL
   fluidRow(p(paste0( tran[id == 32][[lan]], filename,".", fileext)),
            hr(),
@@ -85,9 +85,9 @@ ui_describ_user <- function(filename, filedate, filedesc, fileext, lan, tran){
 
 
 
-input_btns <- function(inputId, users, tooltip, icon, status = "primary") {
+input_btns <- function(inputId, files, tooltip, icon, status = "primary") {
   tag <- lapply(
-    X = users,
+    X = files,
     FUN = function(x) {
       res <- tags$button(
         class = paste0("btn btn-", status),
@@ -111,10 +111,10 @@ input_btns <- function(inputId, users, tooltip, icon, status = "primary") {
 
 
 
-input_checkbox_ui <- function(id, users, checked = FALSE) {
+input_checkbox_ui <- function(id, files, checked = FALSE) {
   ns <- NS(id)
   tag <- lapply(
-    X = users,
+    X = files,
     FUN = function(x) {
       tp_name <- paste0("#", id, "-", "check_", x)
       removeUI(tp_name)
