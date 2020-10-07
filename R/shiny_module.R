@@ -199,7 +199,6 @@ management_server <- function(input,
   observeEvent(input$rename_file_dir,{
     file_translate <- get_file_translate()
 
-    list_dirs <- list.available.dirs()[list.available.dirs() != "corbeille"]
     if(length(list_dirs) > 0){
 
       removeModal()
@@ -232,7 +231,6 @@ management_server <- function(input,
   observeEvent(input$rename_file_dir_selected,{
     file_translate <- get_file_translate()
 
-    list_dirs <- list.available.dirs()[list.available.dirs() != "corbeille"]
     if (input$new_file_dir_desc==""){
       removeModal()
 
@@ -327,7 +325,7 @@ management_server <- function(input,
   }, ignoreInit = TRUE)
 
   yml <- reactive({
-    input$select_file_dir
+    req(input$select_file_dir)
     if(input$select_file_dir !="/"){
       file.path(save_dir,input$select_file_dir, "files_desc.yaml")
     }else{
@@ -336,7 +334,12 @@ management_server <- function(input,
   })
   # End gestion dossier
 
-  all_files <- reactiveFileReader(1000, session, yml, function(x) if (!is.null(x) && length(x) > 0 && file.exists(x)) {.yaml_to_dt(x)} else {NULL})
+  all_files <- reactiveFileReader(1000, session, yml, function(x){
+    if (!is.null(x) && length(x) > 0 && file.exists(x)){
+      .yaml_to_dt(x)
+    } else {
+      NULL
+    }})
 
   output$have_files <- reactive({
     !is.null(all_files()) && nrow(all_files()) > 0
