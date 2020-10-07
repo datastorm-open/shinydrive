@@ -1,44 +1,45 @@
-﻿id;FR;EN
-1;Sous-dossiers : ;Sub-folders : 
-2;Creer;Create
+ID;FR;EN
+1;Sous-dossiers : ;Sub-folders :
+2;Créer;Create
 3;Renommer;Rename
 4;Ajouter un fichier;Add a file
 5;Nouveau sous-dossier;New sub-folder
-6;Veuillez donner un nom au sous-dossier !;Please give a name to the subfolder !
+6;Veuillez donner un nom au sous-dossier !;Please give a name to the sub-folder !
 7;Annuler;Cancel
-8;Ce nom existe déjà. Veuillez donner un autre nom au sous-dossier !;This name already exists. Please give the subfolder another name!
+8;Ce nom existe déjà. Veuillez donner un autre nom au sous-dossier !;This name already exists. Please choose another name!
 9;Votre sous-dossier a bien été créé;Your sub-folder has been successfully created
-10;Un problème est survenu lors de la création du sous-dossier !;There was a problem creating the subfolder!
-11;Charger un fichier;Load a file
+10;Un problème est survenu lors de la création du sous-dossier...;An eror occurred while creating the sub-folder...
+11;Charger un fichier :;Load a file :
 12;Confirmer le nouveau fichier;Confirm new file
-13;Nom de fichier :;File name :
-14;Extension de fichier :;File extension :
+13;Nom du fichier :;File name :
+14;Extension du fichier :;File extension :
 15;Description :;Description :
 16;Modifier le fichier;Edit file
-17;Supprimer le fichier;Delete file
-18;Telecharger un fichier;Download file
-19;Noms;Names
+17;Supprimer le fichier;Remove file
+18;Télécharger le fichier;Download file
+19;Fichier;File
 20;Heure de sauvegarde;Backup time
 21;Description;Description
 22;Edition;Edit
-23;Suppression;Deletion
-24;Telechargement;Download
-25;Selection;Select
+23;Suppression;Remove
+24;Téléchargement;Download
+25;Sélection;Select
 26;//cdn.datatables.net/plug-ins/1.10.11/i18n/French.json;//cdn.datatables.net/plug-ins/1.10.11/i18n/English.json
-27;Confirmer le telechargement;Confirm download
-28;Confirmer la modification;Confirm modification
+27;Confirmer le téléchargement;Confirm download
+28;Confirmer la modification;Confirm edit
 29;Supprimer les fichiers sélectionnés;Remove selected files
-30;Telecharger les fichiers sélectionnés;Download selected files
+30;Télécharger les fichiers sélectionnés;Download selected files
 31;Supprimer les fichiers;Remove files
 32;Fichier;File
 33;Confirmer le changement;Confirm change
-34;Telecharger les fichiers;Download files
-35;Confirmer le telechargement;Confirm download
-36;Details;Details
-37;Date : ;Date : 
-38;Description : ;Description : 
-39;Renommer un sous-dossier;Rename a sub-floder
-40;Veuillez donner un nouveau nom au sous-dossier !;Please give the sub-folder a new name!
-41;Cet nom existe deja. Veuillez donner un autre nom au sous-dossier !;This name already exists. Please give the subfolder another name!
-42;Votre sous-dossier a bien ete renomme;Your sub-folder has been successfully renamed
-43;Confirmer la suppression;Confirm deletion
+34;Télécharger les fichiers;Download files
+35;Confirmer le téléchargement;Confirm download
+36;Détails;Details
+37;Date : ;Date :
+38;Description : ;Description :
+39;Renommer un sous-dossier;Rename a sub-folder
+40;Veuillez donner un nouveau nom au sous-dossier !;Please give a new name to the sub-folder !
+41;Votre sous-dossier a bien été renommé;Your sub-folder has been successfully renamed
+42;Confirmer la suppression;Confirm remove
+43;Aucun sous-dossier présent;No sub-folder to rename
+44;Charger un nouveau fichier ?;Upload a new file ?

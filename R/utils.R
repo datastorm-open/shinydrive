@@ -1,11 +1,3 @@
-#' @noRd
-.convert_date_time <- function(X){
-  X <- gsub("-", "", X)
-  X <- gsub(":", "", X)
-  X <- gsub(" ", "_", X)
-  X
-}
-
 .gyc <- function(yml_info, elem){
   unlist(lapply(yml_info, function(X){X[elem]}))
 }
@@ -13,11 +5,13 @@
 
 .yaml_to_dt <- function(yml){
   yml_info <- yaml::read_yaml(yml)
-  if(is.null(yml_info))return(NULL)
+  if(is.null(yml_info)) return(NULL)
+  if(length(yml_info) == 0) return(NULL)
+  id <- names(yml_info)
   names <- paste0(.gyc(yml_info, "name"), ".", .gyc(yml_info, "extension"))
   date_time <- .gyc(yml_info, "date_upload")
   description <- .gyc(yml_info, "description")
-  dt <- data.table(names = names, date_time = date_time, description = description)
+  dt <- data.frame(id = id, name = names, date_time = date_time, description = description, stringsAsFactors = FALSE)
   dt
 }
 
@@ -57,7 +51,7 @@ dropFalse <- function(x) {
 #' @noRd
 toggleBtn <- function(session, inputId, type = "disable") {
   session$sendCustomMessage(
-    type = "togglewidget",
+    type = "togglewidgetSFM",
     message = list(inputId = inputId, type = type)
   )
 }
@@ -73,17 +67,16 @@ toggleBtn <- function(session, inputId, type = "disable") {
 #' @noRd
 ui_describ_file <- function(filename, filedate, filedesc, fileext, lan, tran){
   id <- NULL
-  fluidRow(p(paste0( tran[id == 32][[lan]], filename,".", fileext)),
-           hr(),
-           p(tags$b(tran[id == 36][[lan]])),
-           p(paste0(tran[id == 37][[lan]], filedate)),
-           p(paste0(tran[id == 38][[lan]], filedesc))
+  fluidRow(
+    column(12,
+           p(
+             paste0(as.character(tran[tran$ID == 32, lan]), " : ", filename,".", fileext, ", ",
+                    as.character(tran[tran$ID == 37, lan], filedate), format(as.POSIXct(as.character(filedate), format = "%Y%m%d_%H%M%s"))
+             )
            )
+    )
+  )
 }
-
-
-
-
 
 input_btns <- function(inputId, files, tooltip, icon, status = "primary") {
   tag <- lapply(
