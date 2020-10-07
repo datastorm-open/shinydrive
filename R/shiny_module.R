@@ -460,7 +460,7 @@ management_server <- function(input,
       dt$Remove <- input_btns(ns("remove_file"), uniquenames(), file_translate[file_translate$ID == 17, get_lan()], icon("trash-o"), status = "danger")
     }
 
-    dt$Download <- input_btns(ns("download_file"), uniquenames(), file_translate[file_translate$ID == 18, get_lan()], icon("file-export"), status = "success")
+    dt$Download <- input_btns(ns("download_file"), uniquenames(), file_translate[file_translate$ID == 18, get_lan()], icon("download"), status = "success")
 
     dt$Select <- input_checkbox_ui(ns("remove_mult_files"), paste0(uniquenames(), ctname()), checked = FALSE)
 
