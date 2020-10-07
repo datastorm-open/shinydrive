@@ -4,14 +4,18 @@
 
 
 .yaml_to_dt <- function(yml){
-  yml_info <- yaml::read_yaml(yml)
-  if(is.null(yml_info)) return(NULL)
-  if(length(yml_info) == 0) return(NULL)
-  id <- names(yml_info)
-  names <- paste0(.gyc(yml_info, "name"), ".", .gyc(yml_info, "extension"))
-  date_time <- .gyc(yml_info, "date_upload")
-  description <- .gyc(yml_info, "description")
-  dt <- data.frame(id = id, name = names, date_time = date_time, description = description, stringsAsFactors = FALSE)
+  if(!is.null(yml) && file.exists(yml)){
+    yml_info <- yaml::read_yaml(yml)
+    if(is.null(yml_info)) return(NULL)
+    if(length(yml_info) == 0) return(NULL)
+    id <- names(yml_info)
+    names <- paste0(.gyc(yml_info, "name"), ".", .gyc(yml_info, "extension"))
+    date_time <- .gyc(yml_info, "date_upload")
+    description <- .gyc(yml_info, "description")
+    dt <- data.frame(id = id, name = names, date_time = date_time, description = description, stringsAsFactors = FALSE)
+  } else {
+    dt <- NULL
+  }
   dt
 }
 
