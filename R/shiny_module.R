@@ -32,8 +32,12 @@ management_ui <- function(id){
                      uiOutput(ns("admin_add_file")),
                      tags$hr()
     ),
-    DT::dataTableOutput(ns("dt")),
-    uiOutput(ns("supress_all")
+    conditionalPanel("output.have_files", ns = ns,
+                     DT::dataTableOutput(ns("dt")),
+                     uiOutput(ns("supress_all"))
+    ),
+    conditionalPanel("output.have_files === false", ns = ns,
+                     uiOutput(ns("msg_no_file"))
     )
   )
 }
@@ -119,6 +123,11 @@ management_server <- function(input,
     get_force_desc <- force_desc
   }
 
+  output$msg_no_file <- renderUI({
+    file_translate <- get_file_translate()
+    div(h4(file_translate[file_translate$ID == 45, get_lan()]), align = "center")
+  })
+
   # Admin TRUE (pass to module at final version)
   output$is_admin <- reactive({
     get_admin_user()
@@ -150,7 +159,12 @@ management_server <- function(input,
   })
   # gestion dossier
   list.available.dirs <- reactiveFileReader(1000, session, save_dir,
-                                            function(x) list.dirs(x, recursive = F, full.names = F))
+                                            function(x){
+                                              if (!is.null(x) && dir.exists(x)){
+                                                list.dirs(x, recursive = F, full.names = F)
+                                              } else {
+                                                NULL
+                                              }} )
 
   observe({
     list.available.dirs <- list.available.dirs()
@@ -323,6 +337,11 @@ management_server <- function(input,
   # End gestion dossier
 
   all_files <- reactiveFileReader(1000, session, yml, function(x) if (!is.null(x) && file.exists(x)) {.yaml_to_dt(x)} else {NULL})
+
+  output$have_files <- reactive({
+    !is.null(all_files()) && nrow(all_files()) > 0
+  })
+  outputOptions(output, "have_files", suspendWhenHidden = FALSE)
 
   # launch modal to add a new file
   count_file_load <- reactiveVal(round(runif(1, 1, 100000000), 0))
