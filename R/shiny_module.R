@@ -332,7 +332,7 @@ management_server <- function(input,
 
     fluidRow(
       column(12,
-             fileInput(ns(paste0("file_load", count_file_load())), label = file_translate[file_translate$ID == 11, get_lan()]),
+             fileInput(ns(paste0("file_load", count_file_load())), label = file_translate[file_translate$ID == 11, get_lan()])
       )
     )
   })
