@@ -381,6 +381,7 @@ management_server <- function(input,
   })
 
   observeEvent(input$add_file, {
+    print("add_file")
     file_translate <- get_file_translate()
 
     count_file_load(count_file_load() + 1)
