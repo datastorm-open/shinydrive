@@ -322,7 +322,7 @@ management_server <- function(input,
   })
   # End gestion dossier
 
-  all_files <- reactiveFileReader(1000, session, yml, function(x) if (file.exists(x)) {.yaml_to_dt(x)} else {NULL})
+  all_files <- reactiveFileReader(1000, session, yml, function(x) if (!is.null(x) && file.exists(x)) {.yaml_to_dt(x)} else {NULL})
 
   # launch modal to add a new file
   count_file_load <- reactiveVal(round(runif(1, 1, 100000000), 0))
