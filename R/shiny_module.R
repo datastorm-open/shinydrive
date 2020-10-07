@@ -200,6 +200,7 @@ management_server <- function(input,
     file_translate <- get_file_translate()
 
     list_dirs <- list.available.dirs()
+
     if(length(list_dirs) > 0){
 
       removeModal()
