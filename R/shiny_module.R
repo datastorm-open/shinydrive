@@ -160,7 +160,7 @@ management_server <- function(input,
   # gestion dossier
   list.available.dirs <- reactiveFileReader(1000, session, save_dir,
                                             function(x){
-                                              if (!is.null(x) && dir.exists(x)){
+                                              if (!is.null(x) && length(x) > 0 && dir.exists(x)){
                                                 list.dirs(x, recursive = F, full.names = F)
                                               } else {
                                                 NULL
@@ -336,7 +336,7 @@ management_server <- function(input,
   })
   # End gestion dossier
 
-  all_files <- reactiveFileReader(1000, session, yml, function(x) if (!is.null(x) && file.exists(x)) {.yaml_to_dt(x)} else {NULL})
+  all_files <- reactiveFileReader(1000, session, yml, function(x) if (!is.null(x) && length(x) > 0 && file.exists(x)) {.yaml_to_dt(x)} else {NULL})
 
   output$have_files <- reactive({
     !is.null(all_files()) && nrow(all_files()) > 0
