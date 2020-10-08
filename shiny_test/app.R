@@ -9,9 +9,21 @@
 
 library(shiny)
 library(shinyfilesmanager)
-
+library(shinymanager)
 unlink("dir_file", recursive = T)
 dir.create("dir_file")
+
+credentials <- data.frame(
+    user = c("shiny", "shinymanager"),
+    password = c("azerty", "12345"), # password will automatically be hashed
+    admin = T,
+    stringsAsFactors = FALSE
+)
+create_db(
+    credentials_data = credentials,
+    sqlite_path = "database.sqlite", # will be created
+    passphrase = "secret"
+)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -26,6 +38,10 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
 
+    auth <- secure_server(
+        check_credentials = check_credentials("database.sqlite", # will be created
+                                              passphrase = "secret")
+    )
     observe({
         callModule(module = management_server,
                    id = "idm_1",
@@ -39,4 +55,5 @@ server <- function(input, output, session) {
 }
 
 # Run the application
-shinyApp(ui = ui, server = server)
+shinyApp(ui = secure_app(
+    ui, enable_admin = T), server = server)
