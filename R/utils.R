@@ -1,18 +1,33 @@
 .gyc <- function(yml_info, elem){
-  unlist(lapply(yml_info, function(X){X[elem]}))
+  unname(unlist(lapply(yml_info, function(X){X[elem]})))
 }
 
+#' @importFrom knitr image_uri
+.img_uri <- function(x, img_size = 30) { sprintf(paste0('<img src="%s" height = "', img_size, '"/>'), knitr::image_uri(x)) }
 
-.yaml_to_dt <- function(yml){
+.yaml_to_dt <- function(yml, img_size = 30){
   if(!is.null(yml) && file.exists(yml)){
     yml_info <- yaml::read_yaml(yml)
     if(is.null(yml_info)) return(NULL)
     if(length(yml_info) == 0) return(NULL)
     id <- names(yml_info)
-    names <- paste0(.gyc(yml_info, "name"), ".", .gyc(yml_info, "extension"))
+    extension <- .gyc(yml_info, "extension")
+    names <- paste0(.gyc(yml_info, "name"), ".", extension)
     date_time <- .gyc(yml_info, "date_upload")
     description <- .gyc(yml_info, "description")
-    dt <- data.frame(id = id, name = names, date_time = date_time, description = description, stringsAsFactors = FALSE)
+
+    file_ext <- list.files(system.file("img/png", package = "shinyfilesmanager"), pattern = ".png", full.names = T)
+    ind_unknown <- file_ext[grep("unknown.png$", file_ext)]
+    png_extension <- sapply(extension, function(ext){
+      ind_png <- grep(paste0(tolower(ext), ".png$"), file_ext)
+      if(length(ind_png) > 0){
+        .img_uri(file_ext[ind_png], img_size = img_size)
+      } else {
+        .img_uri(ind_unknown, img_size = img_size)
+      }
+    })
+
+    dt <- data.frame(id = id, type = unname(png_extension), name = names, date_time = date_time, description = description, stringsAsFactors = FALSE)
   } else {
     dt <- NULL
   }

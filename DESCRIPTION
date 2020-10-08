@@ -17,4 +17,5 @@ Imports:
     tools,
     yaml,
     DT,
-    R.utils
+    R.utils, 
+    knitr

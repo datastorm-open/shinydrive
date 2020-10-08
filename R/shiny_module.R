@@ -1,5 +1,6 @@
-#' @import shiny htmltools DT
+#' @import shiny htmltools
 #' @importFrom tools file_ext file_path_sans_ext
+#' @importFrom DT datatable renderDT DTOutput JS
 #'
 #' @export
 #'
@@ -33,7 +34,7 @@ management_ui <- function(id){
                      tags$hr()
     ),
     conditionalPanel("output.have_files", ns = ns,
-                     DT::dataTableOutput(ns("dt")),
+                     DT::DTOutput(ns("dt")),
                      uiOutput(ns("supress_all"))
     ),
     conditionalPanel("output.have_files === false", ns = ns,
@@ -385,7 +386,6 @@ management_server <- function(input,
   })
 
   observeEvent(input$add_file, {
-    print("add_file")
     file_translate <- get_file_translate()
 
     count_file_load(count_file_load() + 1)
@@ -460,12 +460,12 @@ management_server <- function(input,
     paste0(sample(LETTERS, 5), collapse = "")
   })
 
-  output$dt <- DT::renderDataTable({
+  output$dt <- DT::renderDT({
     req(all_files())
     dt <- all_files()
     file_translate <- get_file_translate()
 
-    if(nrow(dt) == 0)return(NULL)
+    if(nrow(dt) == 0) return(NULL)
 
     if(get_admin_user()){
       dt$Edit <- input_btns(ns("edit_file"), uniquenames(), file_translate[file_translate$ID == 16, get_lan()], icon("pencil-square-o"), status = "primary")
@@ -483,8 +483,9 @@ management_server <- function(input,
     dt$id <- NULL
 
     if(get_admin_user()){
-      if(ncol(dt) < 7){return(NULL)}
-      names(dt) <- c(file_translate[file_translate$ID == 19, get_lan()],
+      if(ncol(dt) < 8){return(NULL)}
+      names(dt) <- c(file_translate[file_translate$ID == 46, get_lan()],
+                     file_translate[file_translate$ID == 19, get_lan()],
                      file_translate[file_translate$ID == 20, get_lan()],
                      file_translate[file_translate$ID == 21, get_lan()],
                      file_translate[file_translate$ID == 22, get_lan()],
@@ -492,16 +493,17 @@ management_server <- function(input,
                      file_translate[file_translate$ID == 24, get_lan()],
                      file_translate[file_translate$ID == 25, get_lan()])
     }else{
-      if(ncol(dt) < 5){return(NULL)}
+      if(ncol(dt) < 6){return(NULL)}
 
-      names(dt) <- c( file_translate[file_translate$ID == 19, get_lan()],
+      names(dt) <- c( file_translate[file_translate$ID == 46, get_lan()],
+                      file_translate[file_translate$ID == 19, get_lan()],
                       file_translate[file_translate$ID == 20, get_lan()],
                       file_translate[file_translate$ID == 21, get_lan()],
                       file_translate[file_translate$ID == 24, get_lan()],
                       file_translate[file_translate$ID == 25, get_lan()])
     }
 
-    datatable(
+    DT::datatable(
       data = dt,
       colnames = make_title(names(dt)),
       rownames = FALSE,
@@ -511,7 +513,7 @@ management_server <- function(input,
       #extensions = 'FixedColumns', # bug using FixedColumns on checkbox + update table...
       options = list(
         language = list(url = file_translate[file_translate$ID == 26, get_lan()]),
-        drawCallback = JS("function() {Shiny.bindAll(this.api().table().node());}"),
+        drawCallback = DT::JS("function() {Shiny.bindAll(this.api().table().node());}"),
         scrollX = TRUE,
         columnDefs = list(
           list(width = "50px", targets = (ncol(dt)-4):(ncol(dt)-1))
