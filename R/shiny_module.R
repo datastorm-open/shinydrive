@@ -329,13 +329,17 @@ management_server <- function(input,
   }, ignoreInit = TRUE)
 
   yml <- reactive({
-    req(input$select_file_dir)
-    if(input$select_file_dir !="/"){
-      file.path(save_dir,input$select_file_dir, "files_desc.yaml")
-    }else{
-      file.path(save_dir, "files_desc.yaml")
+    if(!is.null(input$select_file_dir) && input$select_file_dir != ""){
+      if(input$select_file_dir !="/"){
+        file.path(save_dir,input$select_file_dir, "files_desc.yaml")
+      }else{
+        file.path(save_dir, "files_desc.yaml")
+      }
+    } else {
+      ""
     }
   })
+
   # End gestion dossier
 
   all_files <- reactiveFileReader(1000, session, yml, function(x){
