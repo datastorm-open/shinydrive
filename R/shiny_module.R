@@ -414,7 +414,6 @@ management_server <- function(input,
     file_info <- input[[paste0("file_load", count_file_load())]]
     name <- input$file_name
     description <- input$description
-    # browser()
     if (isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0 && name != "" && length(description) > 0 && description != "") {
       toggleBtn(session = session, inputId = ns("added_file"), type = "enable")
     } else if (!isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0  && name != "") {
@@ -636,7 +635,7 @@ management_server <- function(input,
     file_info <- input[[paste0("file_load", count_file_load())]]
     name <- input$file_name_bis
     description <- input$description_bis
-    # browser()
+
     if(!is.null(input$load_new)){
       if (input$load_new && isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0 && name != "" && length(description) > 0 && description != "") {
         toggleBtn(session = session, inputId = ns("edited_file"), type = "enable")
