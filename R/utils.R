@@ -16,7 +16,7 @@
     date_time <- .gyc(yml_info, "date_upload")
     description <- .gyc(yml_info, "description")
 
-    file_ext <- list.files(system.file("img/png", package = "shinyfilesmanager"), pattern = ".png", full.names = T)
+    file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = T)
     ind_unknown <- file_ext[grep("unknown.png$", file_ext)]
     png_extension <- sapply(extension, function(ext){
       ind_png <- grep(paste0(tolower(ext), ".png$"), file_ext)

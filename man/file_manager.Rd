@@ -36,7 +36,7 @@ yml <- file.path(getwd(), "test_sfm/config.yml") # will be created
 dir <- file.path(getwd(), "test_sfm")
 dir.create(dir)
 
-file <- system.file("translate/translate.csv", package = "shinyfilesmanager")
+file <- system.file("translate/translate.csv", package = "shinydrive")
 
 # add one first file
 add_file_in_dir(

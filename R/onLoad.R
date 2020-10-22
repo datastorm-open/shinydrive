@@ -1,9 +1,9 @@
-#' Adds the content of inst/assets/ to shinyfilesmanager/
+#' Adds the content of inst/assets/ to shinydrive/
 #'
 #' @importFrom shiny addResourcePath
 #'
 #' @noRd
 #'
 .onLoad <- function(...) {
-  shiny::addResourcePath("shinyfilesmanager", system.file("assets", package = "shinyfilesmanager"))
+  shiny::addResourcePath("shinydrive", system.file("assets", package = "shinydrive"))
 }

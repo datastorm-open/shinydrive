@@ -4,12 +4,12 @@
 #'
 #' @export
 #'
-#' @rdname management_module
-management_ui <- function(id){
+#' @rdname shiny_drive_module
+shiny_drive_ui <- function(id){
   ns <- NS(id)
   tagList(
     singleton(tags$head(
-      tags$script(src = "shinyfilesmanager/shiny_utils_sfm.js")
+      tags$script(src = "shinydrive/shiny_utils_sfm.js")
     )),
 
     fluidRow(
@@ -68,10 +68,10 @@ management_ui <- function(id){
 #'
 #' if(require(shiny)){
 #'   ui <- fluidPage(
-#'     management_ui(id = "idm")
+#'     shiny_drive_ui(id = "idm")
 #'   )
 #'   server <- function(input, output, session) {
-#'     callModule(module = management_server,
+#'     callModule(module = shiny_drive_server,
 #'              id = "idm",
 #'              session = session,
 #'              admin_user = TRUE,
@@ -85,9 +85,9 @@ management_ui <- function(id){
 #'
 #' @importFrom stats runif
 #'
-#' @rdname management_module
+#' @rdname shiny_drive_module
 #'
-management_server <- function(input,
+shiny_drive_server <- function(input,
                               output,
                               session,
                               id,
@@ -95,7 +95,7 @@ management_server <- function(input,
                               admin_user = TRUE,
                               force_desc = FALSE,
                               lan = "EN",
-                              file_translate = read.csv(system.file("translate/translate.csv", package = "shinyfilesmanager"), sep = ";", encoding = "UTF-8")) {
+                              file_translate = read.csv(system.file("translate/translate.csv", package = "shinydrive"), sep = ";", encoding = "UTF-8")) {
 
   ns <- session$ns
 
@@ -847,11 +847,15 @@ management_server <- function(input,
                         paste0(tools::file_path_sans_ext(download_file_r$name),"_",
                                download_file_r$date_time, ".",
                                tools::file_ext(download_file_r$name)))
+        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name),  ".",
+                            tools::file_ext(download_file_r$name))
       }else{
         fp <- file.path(save_dir,
                         paste0(tools::file_path_sans_ext(download_file_r$name),"_",
                                download_file_r$date_time, ".",
                                tools::file_ext(download_file_r$name)))
+        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name),  ".",
+                            tools::file_ext(download_file_r$name))
       }
       fp
     })
@@ -859,12 +863,20 @@ management_server <- function(input,
 
   output$downloaded_file <- downloadHandler(
     filename <- function() {
-      paste0("all_selected_files", format(Sys.time(), format = "%Y%m%d_%H%M%S"), ".zip")
+      paste0("shinydrive_files_", format(Sys.time(), format = "%Y%m%d_%H%M%S"), ".zip")
     },
     content <- function(file) {
       fp <- download_all_file_rf()
+      tmp_fp <- sapply(1:length(fp), function(x){
+        cur_file <- unname(fp[x])
+        tmp_file <- file.path(tempdir(), names(fp)[x])
+        file.copy(cur_file, to = tmp_file)
+        tmp_file <- tmp_file
+      })
       removeModal()
-      zip(file, fp, flags = "-r9X -j")
+      zip(file, tmp_fp, flags = "-r9X -j")
+
+      tryCatch({file.remove(tmp_fp)}, error = function(e) NULL)
     }
   )
 }

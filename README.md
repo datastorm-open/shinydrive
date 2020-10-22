@@ -1,40 +1,50 @@
-# shinyfilesmanager
+# shinydrive
 
-## objectifs
 
-Module shiny permettant : 
+R package with simple ``Shiny module`` for easily sharing file.
 
-- à un "admin" : de déposer / éditer / supprimer des fichiers dans un répertoire donné
-    + upload d'un fichier
-    + mettre un nom "temporelle" pour la sauvegarde
-    + une description
-    + on stockerai le tout dans un .yml avec à minima par fichier : nom initial, nom temporelle (date heure milliseconde), date d'upload, description voir les informations de download
+**Admin** can manage directories & files (add, remove, edit, ...)
 
-- à un lecteur : affichage de la table (DT) des fichiers dispos (nom initial, date upload, description) + possibilité de télécharger
+**User** can only download files
 
-## input du Module
+### Installation
 
-- admin : 
-    + upload de fichier
-    + champs description
-    + bouton ajouter
+You can install:
 
-- pour tout le monde : 
-    + une DT avec les fichiers dispos
-    + un bouton par ligne de téléchargement
-    + si admin : un bouton modifier et un bouton supprimer
+-   the latest development version from GitHub with
 
-## A regarder : 
+``` r
+devtools::install_github("datastorm-open/shinydrive")
+```
 
-- existant ?
-- shinymanager pour les DT / css
+### Example
 
-https://github.com/datastorm-open/shinymanager/blob/master/R/module-admin.R
+``` r
+require(shinydrive)
 
-## gestion dossiers / sous-dossiers
+ui <- fluidPage(
+    shiny_drive_ui(id = "idm")
+)
+server <- function(input, output, session) {
+    callModule(module = shiny_drive_server,
+             id = "idm",
+             session = session,
+             admin_user = TRUE,
+             save_dir =  getwd(),
+             lan = "EN")
+}
 
-- admin : 
-        + créer un sous-dossier (depuis l"interface d'affichage ou lors de l'ajout) / renommer un sous-dossier / supprimer tout un dossier
-- tous : filtre d'affichage d'un sous-dossier
+shinyApp(ui, server)
+```
 
-code : https://gitlab.com/datastorm_projects/rte_app_data/-/blob/master/script/module_dataSave.R
+**Admin view**
+
+![](man/figures/sd_1.PNG)
+
+![](man/figures/ad_2.PNG)
+
+**User view**
+
+![](man/figures/sd_3.PNG)
+
+![](man/figures/sd_4.PNG)
