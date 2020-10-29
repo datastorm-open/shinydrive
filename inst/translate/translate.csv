@@ -1,47 +1,47 @@
-ID;FR;EN
-1;Sous-dossiers : ;Sub-folders :
-2;Cr√©er;Create
-3;Renommer;Rename
-4;Ajouter un fichier;Add a file
-5;Nouveau sous-dossier;New sub-folder
-6;Veuillez donner un nom au sous-dossier !;Please give a name to the sub-folder !
-7;Annuler;Cancel
-8;Ce nom existe d√©j√†. Veuillez donner un autre nom au sous-dossier !;This name already exists. Please choose another name!
-9;Votre sous-dossier a bien √©t√© cr√©√©;Your sub-folder has been successfully created
-10;Un probl√®me est survenu lors de la cr√©ation du sous-dossier...;An eror occurred while creating the sub-folder...
-11;Charger un fichier :;Load a file :
-12;Confirmer le nouveau fichier;Confirm new file
-13;Nom du fichier :;File name :
-14;Extension du fichier :;File extension :
-15;Description :;Description :
-16;Modifier le fichier;Edit file
-17;Supprimer le fichier;Remove file
-18;T√©l√©charger le fichier;Download file
-19;Fichier;File
-20;Heure de sauvegarde;Backup time
-21;Description;Description
-22;Edition;Edit
-23;Suppression;Remove
-24;T√©l√©chargement;Download
-25;S√©lection;Select
-26;//cdn.datatables.net/plug-ins/1.10.11/i18n/French.json;//cdn.datatables.net/plug-ins/1.10.11/i18n/English.json
-27;Confirmer le t√©l√©chargement;Confirm download
-28;Confirmer la modification;Confirm edit
-29;Supprimer les fichiers s√©lectionn√©s;Remove selected files
-30;T√©l√©charger les fichiers s√©lectionn√©s;Download selected files
-31;Supprimer les fichiers;Remove files
-32;Fichier;File
-33;Confirmer le changement;Confirm change
-34;T√©l√©charger les fichiers;Download files
-35;Confirmer le t√©l√©chargement;Confirm download
-36;D√©tails;Details
-37;Date : ;Date :
-38;Description : ;Description :
-39;Renommer un sous-dossier;Rename a sub-folder
-40;Veuillez donner un nouveau nom au sous-dossier !;Please give a new name to the sub-folder !
-41;Votre sous-dossier a bien √©t√© renomm√©;Your sub-folder has been successfully renamed
-42;Confirmer la suppression;Confirm remove
-43;Aucun sous-dossier pr√©sent;No sub-folder to rename
-44;Charger un nouveau fichier ?;Upload a new file ?
-45;Aucun fichier disponible;Empty directory
-46;Type;Type
+ID;FR;EN;CH
+1;Sous-dossiers : ;Sub-folders :;????
+2;Cr√©er;Create;??
+3;Renommer;Rename;???
+4;Ajouter un fichier;Add a file;????
+5;Nouveau sous-dossier;New sub-folder;??????
+6;Veuillez donner un nom au sous-dossier !;Please give a name to the sub-folder !;??????? !
+7;Annuler;Cancel;??
+8;Ce nom existe dÈj‡†. Veuillez donner un autre nom au sous-dossier !;This name already exists. Please choose another name!;?????????????? !
+9;Votre sous-dossier a bienÈtÈ crÈe;Your sub-folder has been successfully created;????????
+10;Un problËme est survenu lors de la crÈation du sous-dossier...;There was a problem creating the sub-folder!;???????? !
+11;Charger un fichier :;Load a file :;????
+12;Confirmer le nouveau fichier;Confirm new file;?????
+13;Nom du fichier :;File name :;??? : 
+14;Extension du fichier :;File extension :;????? : 
+15;Description :;Description :;?? : 
+16;Modifier le fichier;Edit file;????
+17;Supprimer le fichier;Delete file;????
+18;TÈlÈcharger le fichier;Download file;????
+19;Fichier;File;??
+20;Heure de sauvegarde;Backup time;????
+21;Description;Description;??
+22;Edition;Edit;??
+23;Suppression;Remove;??
+24;TÈlÈchargement;Download;??
+25;SÈlection;Select;??
+26;//cdn.datatables.net/plug-ins/1.10.11/i18n/French.json;//cdn.datatables.net/plug-ins/1.10.11/i18n/English.json;//cdn.datatables.net/plug-ins/1.10.11/i18n/Chinese.json
+27;Confirmer le tÈlÈchargement;Confirm download;????
+28;Confirmer la modification;Confirm modification;????
+29;Supprimer les fichiers sÈlectionnÈs;Remove selected files;??????
+30;TÈlÈcharger les fichiers sÈlectionnÈs;Download selected files;??????
+31;Supprimer les fichiers;Remove files;????
+32;Fichier;File;??
+33;Confirmer le changement;Confirm change;????
+34;TÈlÈcharger les fichiers;Download files;????
+35;Confirmer le tÈlÈchargement;Confirm download;????
+36;DÈtails;Details;??
+37;Date : ;Date :;?? : 
+38;Description : ;Description :;?? : 
+39;Renommer un sous-dossier;Rename a sub-folder;??????
+40;Veuillez donner un nouveau nom au sous-dossier !;Please give the sub-folder a new name!;???????? !
+41;Votre sous-dossier a bien ÈtÈ renommÈ;Your sub-folder has been successfully renamed;???????
+42;Confirmer la suppression;Confirm deletion;????
+43;Aucun sous-dossier prÈsent;No sub-folder to rename;???????????
+44;Charger un nouveau fichier ?;Upload a new file ?;??????
+45;Aucun fichier disponible;Empty directory;???
+46;Type;Type;??
