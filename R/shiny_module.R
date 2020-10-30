@@ -330,6 +330,7 @@ shiny_drive_server <- function(input,
   }, ignoreInit = TRUE)
 
   yml <- reactive({
+    req(input$select_file_dir)
     if(!is.null(input$select_file_dir) && input$select_file_dir != ""){
       if(input$select_file_dir !="/"){
         file.path(save_dir,input$select_file_dir, "files_desc.yaml")

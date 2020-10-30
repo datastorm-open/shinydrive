@@ -8,7 +8,7 @@
 #
 
 library(shiny)
-library(shinyfilesmanager)
+library(shinydrive)
 library(shinymanager)
 unlink("dir_file", recursive = T)
 dir.create("dir_file")
@@ -32,7 +32,7 @@ ui <- fluidPage(
         column(2, selectInput("langue", NULL, choices = c("EN", "FR"))),
         column(2, checkboxInput("force_desc", "Force description ?"))
     ),
-    management_ui(id = "idm_1")
+    shiny_drive_ui(id = "idm_1")
 )
 
 # Define server logic required to draw a histogram
@@ -43,7 +43,7 @@ server <- function(input, output, session) {
                                               passphrase = "secret")
     )
     observe({
-        callModule(module = management_server,
+        callModule(module = shiny_drive_server,
                    id = "idm_1",
                    session = session,
                    admin_user = input$admin,
