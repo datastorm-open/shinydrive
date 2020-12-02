@@ -105,7 +105,6 @@ shiny_drive_server <- function(input,
     get_admin_user <- admin_user
   }
 
-
   if (!shiny::is.reactive(lan)){
     get_lan <- shiny::reactive({lan})
   } else {
@@ -126,6 +125,7 @@ shiny_drive_server <- function(input,
 
   output$msg_no_file <- renderUI({
     file_translate <- get_file_translate()
+    req(file_translate)
     div(h4(file_translate[file_translate$ID == 45, get_lan()]), align = "center")
   })
 
@@ -137,12 +137,14 @@ shiny_drive_server <- function(input,
 
   output$ui_title <- renderUI({
     file_translate <- get_file_translate()
+    req(file_translate)
     div(h4(file_translate[file_translate$ID == 1, get_lan()]), align = "center")
   })
 
   output$admin_dir_btn <- renderUI({
     file_translate <- get_file_translate()
-    column(6,
+    req(file_translate)
+    column(5,
            actionButton(ns("create_file_dir_bis"),file_translate[file_translate$ID == 2, get_lan()], icon = icon("plus")),
            actionButton(ns("rename_file_dir"), file_translate[file_translate$ID == 3, get_lan()], icon = icon("edit"))
     )
@@ -150,6 +152,7 @@ shiny_drive_server <- function(input,
 
   output$admin_add_file <- renderUI({
     file_translate <- get_file_translate()
+    req(file_translate)
     actionButton(
       inputId = ns("add_file"),
       label = file_translate[file_translate$ID == 4, get_lan()],
@@ -330,7 +333,6 @@ shiny_drive_server <- function(input,
   }, ignoreInit = TRUE)
 
   yml <- reactive({
-    req(input$select_file_dir)
     if(!is.null(input$select_file_dir) && input$select_file_dir != ""){
       if(input$select_file_dir !="/"){
         file.path(save_dir,input$select_file_dir, "files_desc.yaml")
@@ -415,6 +417,7 @@ shiny_drive_server <- function(input,
     file_info <- input[[paste0("file_load", count_file_load())]]
     name <- input$file_name
     description <- input$description
+    req(get_force_desc())
     if (isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0 && name != "" && length(description) > 0 && description != "") {
       toggleBtn(session = session, inputId = ns("added_file"), type = "enable")
     } else if (!isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0  && name != "") {
@@ -741,7 +744,7 @@ shiny_drive_server <- function(input,
                            inputId = ns("remove_selected_files"),
                            label = file_translate[file_translate$ID == 29, get_lan()],
                            class = "btn-danger pull-right",
-                           icon = icon("trash-o")),
+                           icon = icon("trash-o"))
         ),
         p(),
         actionButton(
