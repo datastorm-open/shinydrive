@@ -18,9 +18,9 @@ shiny_drive_ui <- function(id){
                column(2,
                       uiOutput(ns("ui_title"))
                ),
-               column(2,
+               column(4,
                       style = "margin-left: 15px;",
-                      selectInput(ns("select_file_dir"), NULL, choices = NULL , selected = NULL, width = "100%")
+                      selectInput(ns("select_file_dir"), NULL, choices = NULL, selected = NULL, width = "100%")
                ),
                conditionalPanel("output.is_admin", ns = ns,
                                 uiOutput(ns("admin_dir_btn"))
@@ -142,7 +142,7 @@ shiny_drive_server <- function(input,
 
   output$admin_dir_btn <- renderUI({
     file_translate <- get_file_translate()
-    column(7,
+    column(6,
            actionButton(ns("create_file_dir_bis"),file_translate[file_translate$ID == 2, get_lan()], icon = icon("plus")),
            actionButton(ns("rename_file_dir"), file_translate[file_translate$ID == 3, get_lan()], icon = icon("edit"))
     )
