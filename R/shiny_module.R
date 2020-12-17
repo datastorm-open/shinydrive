@@ -95,7 +95,7 @@ shiny_drive_server <- function(input,
                               admin_user = TRUE,
                               force_desc = FALSE,
                               lan = "EN",
-                              file_translate = read.csv(system.file("translate/translate.csv", package = "shinydrive"), sep = ";", encoding = "UTF-8")) {
+                              file_translate = read.csv(system.file("translate/translate.csv", package = "shinydrive"), sep = ";", encoding = "UTF-8", check.names=FALSE)) {
 
   ns <- session$ns
 

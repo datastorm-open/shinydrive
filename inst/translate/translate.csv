@@ -1,47 +1,47 @@
 ID;FR;EN;CH
-1;Sous-dossiers : ;Sub-folders :;????
-2;Créer;Create;??
-3;Renommer;Rename;???
-4;Ajouter un fichier;Add a file;????
-5;Nouveau sous-dossier;New sub-folder;??????
-6;Veuillez donner un nom au sous-dossier !;Please give a name to the sub-folder !;??????? !
-7;Annuler;Cancel;??
-8;Ce nom existe d�j�. Veuillez donner un autre nom au sous-dossier !;This name already exists. Please choose another name!;?????????????? !
-9;Votre sous-dossier a bien�t� cr�e;Your sub-folder has been successfully created;????????
-10;Un probl�me est survenu lors de la cr�ation du sous-dossier...;There was a problem creating the sub-folder!;???????? !
-11;Charger un fichier :;Load a file :;????
-12;Confirmer le nouveau fichier;Confirm new file;?????
-13;Nom du fichier :;File name :;??? : 
-14;Extension du fichier :;File extension :;????? : 
-15;Description :;Description :;?? : 
-16;Modifier le fichier;Edit file;????
-17;Supprimer le fichier;Delete file;????
-18;T�l�charger le fichier;Download file;????
-19;Fichier;File;??
-20;Heure de sauvegarde;Backup time;????
-21;Description;Description;??
-22;Edition;Edit;??
-23;Suppression;Remove;??
-24;T�l�chargement;Download;??
-25;S�lection;Select;??
+1;Sous-dossiers : ;Sub-folders :;子文件夹
+2;Créer;Create;创建
+3;Renommer;Rename;重命名
+4;Ajouter un fichier;Add a file;添加文件
+5;Nouveau sous-dossier;New sub-folder;创建子文件夹
+6;Veuillez donner un nom au sous-dossier !;Please give a name to the sub-folder !;请命名子文件夹 !
+7;Annuler;Cancel;取消
+8;Ce nom existe déjà . Veuillez donner un autre nom au sous-dossier !;This name already exists. Please choose another name!;子文件夹名已存在，请重新命名 !
+9;Votre sous-dossier a bien été crée;Your sub-folder has been successfully created;成功创建子文件夹
+10;Un problème est survenu lors de la création du sous-dossier...;There was a problem creating the sub-folder!;创建子文件夹失败 !
+11;Charger un fichier :;Load a file :;上传文件
+12;Confirmer le nouveau fichier;Confirm new file;确认新文件
+13;Nom du fichier :;File name :;文件名 : 
+14;Extension du fichier :;File extension :;文件扩展名 : 
+15;Description :;Description :;描述 : 
+16;Modifier le fichier;Edit file;修改文件
+17;Supprimer le fichier;Delete file;删除文件
+18;Télécharger le fichier;Download file;下载文件
+19;Fichier;File;名字
+20;Heure de sauvegarde;Backup time;备份时间
+21;Description;Description;描述
+22;Edition;Edit;修改
+23;Suppression;Remove;删除
+24;Téléchargement;Download;下载
+25;Sélection;Select;选择
 26;//cdn.datatables.net/plug-ins/1.10.11/i18n/French.json;//cdn.datatables.net/plug-ins/1.10.11/i18n/English.json;//cdn.datatables.net/plug-ins/1.10.11/i18n/Chinese.json
-27;Confirmer le t�l�chargement;Confirm download;????
-28;Confirmer la modification;Confirm modification;????
-29;Supprimer les fichiers s�lectionn�s;Remove selected files;??????
-30;T�l�charger les fichiers s�lectionn�s;Download selected files;??????
-31;Supprimer les fichiers;Remove files;????
-32;Fichier;File;??
-33;Confirmer le changement;Confirm change;????
-34;T�l�charger les fichiers;Download files;????
-35;Confirmer le t�l�chargement;Confirm download;????
-36;D�tails;Details;??
-37;Date : ;Date :;?? : 
-38;Description : ;Description :;?? : 
-39;Renommer un sous-dossier;Rename a sub-folder;??????
-40;Veuillez donner un nouveau nom au sous-dossier !;Please give the sub-folder a new name!;???????? !
-41;Votre sous-dossier a bien �t� renomm�;Your sub-folder has been successfully renamed;???????
-42;Confirmer la suppression;Confirm deletion;????
-43;Aucun sous-dossier pr�sent;No sub-folder to rename;???????????
-44;Charger un nouveau fichier ?;Upload a new file ?;??????
-45;Aucun fichier disponible;Empty directory;???
-46;Type;Type;??
+27;Confirmer le téléchargement;Confirm download;确认下载
+28;Confirmer la modification;Confirm modification;确认修改
+29;Supprimer les fichiers sélectionnés;Remove selected files;删除所选文件
+30;Télécharger les fichiers sélectionnés;Download selected files;下载所选文件
+31;Supprimer les fichiers;Remove files;删除文件
+32;Fichier;File;文件
+33;Confirmer le changement;Confirm change;确认修改
+34;Télécharger les fichiers;Download files;下载文件
+35;Confirmer le téléchargement;Confirm download;确认下载
+36;Détails;Details;细节
+37;Date : ;Date :;日期 : 
+38;Description : ;Description :;描述 : 
+39;Renommer un sous-dossier;Rename a sub-folder;子文件重命名
+40;Veuillez donner un nouveau nom au sous-dossier !;Please give the sub-folder a new name!;请重命名子文件夹 !
+41;Votre sous-dossier a bien été renommé;Your sub-folder has been successfully renamed;子文件成功命名
+42;Confirmer la suppression;Confirm deletion;确认删除
+43;Aucun sous-dossier présent;No sub-folder to rename;没有子文件夹可以重命名
+44;Charger un nouveau fichier ?;Upload a new file ?;上传新文件？
+45;Aucun fichier disponible;Empty directory;空目录
+46;Type;Type;类型
