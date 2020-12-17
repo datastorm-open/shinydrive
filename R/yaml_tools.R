@@ -33,7 +33,7 @@
 #' add_file_in_dir(
 #'   file = file,
 #'   dir= dir,
-#'  yml = yml,
+#'   yml = yml,
 #'   name = "translate_2",
 #'   description = "This is cool"
 #' )
