@@ -16,12 +16,13 @@
     date_time <- .gyc(yml_info, "date_upload")
     description <- .gyc(yml_info, "description")
 
-    file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = T)
-    ind_unknown <- file_ext[grep("unknown.png$", file_ext)]
+    file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = F)
+    full_file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = T)
+    ind_unknown <- full_file_ext[grep("unknown.png$", full_file_ext)]
     png_extension <- sapply(extension, function(ext){
-      ind_png <- grep(paste0(tolower(ext), ".png$"), file_ext)
+      ind_png <- grep(paste0("^", tolower(ext), ".png$"), file_ext)
       if(length(ind_png) > 0){
-        .img_uri(file_ext[ind_png], img_size = img_size)
+        .img_uri(full_file_ext[ind_png], img_size = img_size)
       } else {
         .img_uri(ind_unknown, img_size = img_size)
       }

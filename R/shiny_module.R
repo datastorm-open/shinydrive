@@ -49,7 +49,7 @@ shiny_drive_ui <- function(id){
 #'
 #' File management shiny module.
 #'
-#' @param id \code{character}. shiny id to allow multiple instanciation.
+#' @param id \code{character}. An ID string
 #' @param input shiny input
 #' @param output shiny input
 #' @param session shiny input

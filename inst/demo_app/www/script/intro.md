@@ -11,7 +11,7 @@ R package with simple ``Shiny module`` for easily sharing file.
 - we just add date/time to file name only on drive
 - and use a ``yaml`` file to save informations
 
-![](inst/demo_app/www/figures/files.PNG)
+![img](figures/files.PNG)
 
 ### Installation
 
@@ -40,7 +40,6 @@ ui <- fluidPage(
 server <- function(input, output, session) {
     callModule(module = shiny_drive_server,
              id = "idm",
-             session = session,
              admin_user = TRUE,
              save_dir =  getwd(),
              lan = "EN")
@@ -51,12 +50,12 @@ shinyApp(ui, server)
 
 **Admin view**
 
-![](inst/demo_app/www/figures/sd_1.PNG)
+![img](figures/sd_1.PNG)
 
-![](inst/demo_app/www/figures/ad_2.PNG)
+![img](figures/ad_2.PNG)
 
 **User view**
 
-![](inst/demo_app/www/figures/sd_3.PNG)
+![img](figures/sd_3.PNG)
 
-![](inst/demo_app/www/figures/sd_4.PNG)
+![](figures/sd_4.PNG)

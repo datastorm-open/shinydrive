@@ -21,7 +21,7 @@ shiny_drive_server(
 )
 }
 \arguments{
-\item{id}{\code{character}. shiny id to allow multiple instanciation.}
+\item{id}{\code{character}. An ID string}
 
 \item{input}{shiny input}
 
