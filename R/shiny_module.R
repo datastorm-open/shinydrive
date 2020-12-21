@@ -56,6 +56,7 @@ shiny_drive_ui <- function(id){
 #' @param save_dir \code{character}. Directory of the files.
 #' @param admin_user \code{boolean/reactive} (TRUE). Admin user or not.
 #' @param lan \code{character/reactive} ("EN"). Language to be used in the module (FR and EN available... contributions are welcome :)).
+#' @param dir_access \code{character} vector for dir(s) access. Can be adapt by user.
 #' @param file_translate \code{data.frame/reactive} File for translation.
 #' @param force_desc \code{boolean/reactive} (FALSE). Force to add an entry description ?
 #'
@@ -95,7 +96,11 @@ shiny_drive_server <- function(input,
                               admin_user = TRUE,
                               force_desc = FALSE,
                               lan = "EN",
-                              file_translate = read.csv(system.file("translate/translate.csv", package = "shinydrive"), sep = ";", encoding = "UTF-8")) {
+                              dir_access = NULL,
+                              file_translate = read.csv(system.file("translate/translate.csv", package = "shinydrive"),
+                                                        sep = ";",
+                                                        encoding = "UTF-8",
+                                                        check.names=FALSE)) {
 
   ns <- session$ns
 
@@ -172,11 +177,17 @@ shiny_drive_server <- function(input,
 
   observe({
     list.available.dirs <- list.available.dirs()
+    list.available.dirs <- c("/",list.available.dirs)
+    if(!is.null(dir_access)){
+      if("" %in% dir_access)dir_access <- c(dir_access, "/")
+      list.available.dirs <- list.available.dirs[list.available.dirs %in% dir_access]
+    }
+
     isolate({
       if (!is.null(list.available.dirs) ){
         updateSelectInput(session,
                           "select_file_dir",
-                          choices = c("/",list.available.dirs),
+                          choices = list.available.dirs,
                           selected = input$file_dir_desc)
       }
     })
