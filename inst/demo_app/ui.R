@@ -8,8 +8,6 @@ navbarPage(title = HTML(paste0('<p style="margin-top: 0.05cm;">', paste0(rep("&n
                target = "_blank", img(src = "img/img-datastorm-logo-white.png", class = "ribbon", style = "margin-left: 0cm;margin-top: 0.1cm;height: 55px")),
              a(href = "https://github.com/datastorm-open/shinydrive",
                target = "_blank", img(src = "img/github.png", class = "ribbon", style = "margin-left: 3cm;margin-top: 0cm;height: 60px")),
-             singleton(tags$script(src = 'events.js')),
-             singleton(tags$script(src = 'is.min.js')),
              # footer
              div(class = "ds_app_footer", div(p("copyright © Datastorm 2020", style = "color:white"), align = "center")),
            ),
@@ -21,7 +19,7 @@ navbarPage(title = HTML(paste0('<p style="margin-top: 0.05cm;">', paste0(rep("&n
                     includeMarkdown("www/script/basic.md"),
                     hr(),
                     fluidRow(
-                      column(2, offset = 3, checkboxInput("admin", "Admin ?")),
+                      column(2, offset = 3, checkboxInput("admin", "Admin ?", F)),
                       column(2, selectInput("langue", NULL, choices = c("EN", "FR"))),
                       column(2, checkboxInput("force_desc", "Force description ?"))
                     ),

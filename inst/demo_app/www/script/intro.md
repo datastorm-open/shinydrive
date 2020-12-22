@@ -58,4 +58,4 @@ shinyApp(ui, server)
 
 ![img](figures/sd_3.PNG)
 
-![](figures/sd_4.PNG)
+![img](figures/sd_4.PNG)

@@ -12,6 +12,11 @@ shiny_drive_ui <- function(id){
       tags$script(src = "shinydrive/shiny_utils_sfm.js")
     )),
 
+    # fix fontAwesome init loading...
+    fluidRow(
+      actionButton("fix FA", "fix FA", icon = icon("refresh"), style = "display:none"),
+    ),
+
     fluidRow(
       column(12,
              fluidRow(
@@ -179,7 +184,7 @@ shiny_drive_server <- function(input,
     list.available.dirs <- list.available.dirs()
     list.available.dirs <- c("/",list.available.dirs)
     if(!is.null(dir_access)){
-      if("" %in% dir_access)dir_access <- c(dir_access, "/")
+      if("" %in% dir_access)  dir_access <- c(dir_access, "/")
       list.available.dirs <- list.available.dirs[list.available.dirs %in% dir_access]
     }
 
