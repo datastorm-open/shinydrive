@@ -58,7 +58,7 @@ shiny_drive_ui <- function(id){
 #' @param input shiny input
 #' @param output shiny input
 #' @param session shiny input
-#' @param save_dir \code{character}. Directory of the files.
+#' @param save_dir \code{character}. Main directory of the files.
 #' @param admin_user \code{boolean/reactive} (TRUE). Admin user or not.
 #' @param lan \code{character/reactive} ("EN"). Language to be used in the module (FR and EN available... contributions are welcome :)).
 #' @param dir_access \code{character} vector for dir(s) access. Can be adapt by user.
@@ -97,11 +97,11 @@ shiny_drive_server <- function(input,
                               output,
                               session,
                               id,
-                              save_dir = NULL,
+                              save_dir,
+                              dir_access = NULL,
                               admin_user = TRUE,
                               force_desc = FALSE,
                               lan = "EN",
-                              dir_access = NULL,
                               file_translate = read.csv(system.file("translate/translate.csv", package = "shinydrive"),
                                                         sep = ";",
                                                         encoding = "UTF-8",
