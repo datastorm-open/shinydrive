@@ -60,8 +60,8 @@ shiny_drive_ui <- function(id){
 #' @param session shiny input
 #' @param save_dir \code{character}. Main directory of the files.
 #' @param admin_user \code{boolean/reactive} (TRUE). Admin user or not.
-#' @param lan \code{character/reactive} ("EN"). Language to be used in the module (FR and EN available... contributions are welcome :)).
-#' @param dir_access \code{character} vector for dir(s) access. Can be adapt by user.
+#' @param lan \code{character/reactive} ("EN"). Language to be used in the module (FR, EN and CN availabled... contributions are welcome :)).
+#' @param dir_access \code{character} vector for dir(s) access. Default to \code{NULL} (all directories)
 #' @param file_translate \code{data.frame/reactive} File for translation.
 #' @param force_desc \code{boolean/reactive} (FALSE). Force to add an entry description ?
 #'
@@ -94,20 +94,32 @@ shiny_drive_ui <- function(id){
 #' @rdname shiny_drive_module
 #'
 shiny_drive_server <- function(input,
-                              output,
-                              session,
-                              id,
-                              save_dir,
-                              dir_access = NULL,
-                              admin_user = TRUE,
-                              force_desc = FALSE,
-                              lan = "EN",
-                              file_translate = read.csv(system.file("translate/translate.csv", package = "shinydrive"),
-                                                        sep = ";",
-                                                        encoding = "UTF-8",
-                                                        check.names=FALSE)) {
+                               output,
+                               session,
+                               id,
+                               save_dir,
+                               dir_access = NULL,
+                               admin_user = TRUE,
+                               force_desc = FALSE,
+                               lan = "EN",
+                               file_translate = read.csv(system.file("translate/translate.csv", package = "shinydrive"),
+                                                         sep = ";",
+                                                         encoding = "UTF-8",
+                                                         check.names=FALSE)) {
 
   ns <- session$ns
+
+  if (!shiny::is.reactive(save_dir)){
+    get_save_dir <- shiny::reactive({save_dir})
+  } else {
+    get_save_dir <- save_dir
+  }
+
+  if (!shiny::is.reactive(dir_access)){
+    get_dir_access <- shiny::reactive({dir_access})
+  } else {
+    get_dir_access <- dir_access
+  }
 
   if (!shiny::is.reactive(admin_user)){
     get_admin_user <- shiny::reactive({admin_user})
@@ -172,15 +184,26 @@ shiny_drive_server <- function(input,
     )
   })
   # gestion dossier
-  list.available.dirs <- reactiveFileReader(1000, session, save_dir,
+  list.available.dirs <- reactiveFileReader(1000, session, get_save_dir,
                                             function(x){
                                               if (!is.null(x) && length(x) > 0 && dir.exists(x)){
                                                 list.dirs(x, recursive = F, full.names = F)
                                               } else {
                                                 NULL
-                                              }} )
+                                              }
+                                            })
+
+
+  current_dir <- reactiveVal(NULL)
 
   observe({
+    select_file_dir <- input$select_file_dir
+    if(select_file_dir == "") select_file_dir <- "/"
+    current_dir(select_file_dir)
+  })
+
+  observe({
+    dir_access <- get_dir_access()
     list.available.dirs <- list.available.dirs()
     list.available.dirs <- c("/",list.available.dirs)
     if(!is.null(dir_access)){
@@ -193,7 +216,7 @@ shiny_drive_server <- function(input,
         updateSelectInput(session,
                           "select_file_dir",
                           choices = list.available.dirs,
-                          selected = input$file_dir_desc)
+                          selected = current_dir())
       }
     })
   })
@@ -251,6 +274,9 @@ shiny_drive_server <- function(input,
 
   # Renomer un sous-dossier
   observeEvent(input$rename_file_dir_selected,{
+
+    save_dir <- isolate(get_save_dir())
+
     file_translate <- get_file_translate()
 
     list_dirs <- list.available.dirs()
@@ -284,8 +310,8 @@ shiny_drive_server <- function(input,
         )
       ))
     } else {
-      file.rename(from = file.path(save_dir,input$select_file_dir_rename),
-                  to = file.path(save_dir,input$new_file_dir_desc))
+      file.rename(from = file.path(save_dir, input$select_file_dir_rename),
+                  to = file.path(save_dir, input$new_file_dir_desc))
       removeModal()
       shiny::showModal(shiny::modalDialog(
         easyClose = TRUE,
@@ -296,6 +322,9 @@ shiny_drive_server <- function(input,
   }, ignoreInit = TRUE)
 
   observeEvent(input$create_file_dir_ok,{
+
+    save_dir <- isolate(get_save_dir())
+
     file_translate <- get_file_translate()
 
     if (input$file_dir_desc == ""){
@@ -325,10 +354,11 @@ shiny_drive_server <- function(input,
           easyClose = FALSE
         ))
       } else {
-        fold_path <- file.path(save_dir,input$file_dir_desc)
+        fold_path <- file.path(save_dir, input$file_dir_desc)
         create_test <- dir.create(fold_path)
         if (create_test){
           file.create(file.path(fold_path, "files_desc.yaml"))
+          current_dir(input$file_dir_desc)
           removeModal()
           shiny::showModal(shiny::modalDialog(
             easyClose = TRUE,
@@ -349,9 +379,12 @@ shiny_drive_server <- function(input,
   }, ignoreInit = TRUE)
 
   yml <- reactive({
+
+    save_dir <- get_save_dir()
+
     if(!is.null(input$select_file_dir) && input$select_file_dir != ""){
       if(input$select_file_dir !="/"){
-        file.path(save_dir,input$select_file_dir, "files_desc.yaml")
+        file.path(save_dir, input$select_file_dir, "files_desc.yaml")
       }else{
         file.path(save_dir, "files_desc.yaml")
       }
@@ -446,11 +479,13 @@ shiny_drive_server <- function(input,
   # Add a file
   observeEvent(input$added_file, {
 
+    save_dir <- isolate(get_save_dir())
+
     file_info <- input[[paste0("file_load", count_file_load())]]
 
     # To folder
     if(input$select_file_dir != "/"){
-      dir <- file.path(save_dir,input$select_file_dir)
+      dir <- file.path(save_dir, input$select_file_dir)
     }else{
       dir <- save_dir
     }
@@ -549,8 +584,11 @@ shiny_drive_server <- function(input,
   })
 
   download_file_rf <- reactive({
+
+    save_dir <- isolate(get_save_dir())
+
     if(input$select_file_dir != "/"){
-      fp <- file.path(save_dir,input$select_file_dir,
+      fp <- file.path(save_dir, input$select_file_dir,
                       paste0(tools::file_path_sans_ext(download_file_r()$name),"_",
                              download_file_r()$date_time, ".",
                              tools::file_ext(download_file_r()$name)))
@@ -673,6 +711,8 @@ shiny_drive_server <- function(input,
 
   observeEvent(input$edited_file, {
 
+    save_dir <- isolate(get_save_dir())
+
     if(!is.null(input$load_new)){
       file_info <- input[[paste0("file_load", count_file_load())]]
     } else {
@@ -680,7 +720,7 @@ shiny_drive_server <- function(input,
     }
 
     if(input$select_file_dir != "/"){
-      dir <- file.path(save_dir,input$select_file_dir)
+      dir <- file.path(save_dir, input$select_file_dir)
     }else{
       dir <- save_dir
     }
@@ -733,8 +773,10 @@ shiny_drive_server <- function(input,
 
   observeEvent(input$removed_file, {
 
+    save_dir <- isolate(get_save_dir())
+
     if(input$select_file_dir != "/"){
-      dir <- file.path(save_dir,input$select_file_dir)
+      dir <- file.path(save_dir, input$select_file_dir)
     }else{
       dir <- save_dir
     }
@@ -816,8 +858,11 @@ shiny_drive_server <- function(input,
 
 
   observeEvent(input$removed_selected_files, {
+
+    save_dir <- isolate(get_save_dir())
+
     if(input$select_file_dir != "/"){
-      dir <- file.path(save_dir,input$select_file_dir)
+      dir <- file.path(save_dir, input$select_file_dir)
     }else{
       dir <- save_dir
     }
@@ -860,10 +905,13 @@ shiny_drive_server <- function(input,
   }, ignoreInit = TRUE)
 
   download_all_file_rf <- reactive({
+
+    save_dir <- isolate(get_save_dir())
+
     sapply(1:nrow(files_to_remove()), function(i){
       download_file_r <- files_to_remove()[i, ]
       if((input$select_file_dir != "/")){
-        fp <- file.path(save_dir,input$select_file_dir,
+        fp <- file.path(save_dir, input$select_file_dir,
                         paste0(tools::file_path_sans_ext(download_file_r$name),"_",
                                download_file_r$date_time, ".",
                                tools::file_ext(download_file_r$name)))

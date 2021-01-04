@@ -1,7 +1,7 @@
 Package: shinydrive
 Type: Package
 Title: File-sharing Shyny Module
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("Benoit", "Thieurmel", email = "benoit.thieurmel@datastorm.fr", role = c("aut", "cre")),
     person("Titouan", "Robert", email = "titouan.robert@datastorm.fr", role = c("aut")),

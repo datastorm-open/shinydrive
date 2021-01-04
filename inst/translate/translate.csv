@@ -1,4 +1,4 @@
-ID;FR;EN;CH
+ID;FR;EN;CN
 1;Sous-dossiers : ;Sub-folders :;子文件夹
 2;Créer;Create;创建
 3;Renommer;Rename;重命名
@@ -6,14 +6,14 @@ ID;FR;EN;CH
 5;Nouveau sous-dossier;New sub-folder;创建子文件夹
 6;Veuillez donner un nom au sous-dossier !;Please give a name to the sub-folder !;请命名子文件夹 !
 7;Annuler;Cancel;取消
-8;Ce nom existe déjà . Veuillez donner un autre nom au sous-dossier !;This name already exists. Please choose another name!;子文件夹名已存在，请重新命名 !
+8;Ce nom existe déjà. Veuillez donner un autre nom au sous-dossier !;This name already exists. Please choose another name!;子文件夹名已存在，请重新命名 !
 9;Votre sous-dossier a bien été crée;Your sub-folder has been successfully created;成功创建子文件夹
 10;Un problème est survenu lors de la création du sous-dossier...;There was a problem creating the sub-folder!;创建子文件夹失败 !
 11;Charger un fichier :;Load a file :;上传文件
 12;Confirmer le nouveau fichier;Confirm new file;确认新文件
-13;Nom du fichier :;File name :;文件名 : 
-14;Extension du fichier :;File extension :;文件扩展名 : 
-15;Description :;Description :;描述 : 
+13;Nom du fichier :;File name :;文件名 :
+14;Extension du fichier :;File extension :;文件扩展名 :
+15;Description :;Description :;描述 :
 16;Modifier le fichier;Edit file;修改文件
 17;Supprimer le fichier;Delete file;删除文件
 18;Télécharger le fichier;Download file;下载文件
@@ -35,8 +35,8 @@ ID;FR;EN;CH
 34;Télécharger les fichiers;Download files;下载文件
 35;Confirmer le téléchargement;Confirm download;确认下载
 36;Détails;Details;细节
-37;Date : ;Date :;日期 : 
-38;Description : ;Description :;描述 : 
+37;Date : ;Date :;日期 :
+38;Description : ;Description :;描述 :
 39;Renommer un sous-dossier;Rename a sub-folder;子文件重命名
 40;Veuillez donner un nouveau nom au sous-dossier !;Please give the sub-folder a new name!;请重命名子文件夹 !
 41;Votre sous-dossier a bien été renommé;Your sub-folder has been successfully renamed;子文件成功命名

@@ -7,7 +7,8 @@ Two main functions in `shinydrive` :
     + **save_dir** : output directory
     + **admin_user** : admin user or not
     + **force_desc** : force user to set a file description
-    + **lan** : language (EN or FR)
+    + **lan** : language (EN, FR or CN)
+    + **dir_access** : can be used to set sub-directories restriction
     
 This function must be used with ``callModule`` function
 
@@ -16,7 +17,7 @@ This function must be used with ``callModule`` function
 ``` r
 # ui
 ui = shiny::fluidPage(
-  shiny_drive_ui(id = "id")
+  shiny_drive_ui(id = "idm")
 )
 
 # server

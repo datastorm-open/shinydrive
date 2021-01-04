@@ -12,12 +12,13 @@ shiny_drive_server(
   output,
   session,
   id,
-  save_dir = NULL,
+  save_dir,
+  dir_access = NULL,
   admin_user = TRUE,
   force_desc = FALSE,
   lan = "EN",
   file_translate = read.csv(system.file("translate/translate.csv", package =
-    "shinydrive"), sep = ";", encoding = "UTF-8")
+    "shinydrive"), sep = ";", encoding = "UTF-8", check.names = FALSE)
 )
 }
 \arguments{
@@ -29,13 +30,15 @@ shiny_drive_server(
 
 \item{session}{shiny input}
 
-\item{save_dir}{\code{character}. Directory of the files.}
+\item{save_dir}{\code{character}. Main directory of the files.}
+
+\item{dir_access}{\code{character} vector for dir(s) access. Default to \code{NULL} (all directories)}
 
 \item{admin_user}{\code{boolean/reactive} (TRUE). Admin user or not.}
 
 \item{force_desc}{\code{boolean/reactive} (FALSE). Force to add an entry description ?}
 
-\item{lan}{\code{character/reactive} ("EN"). Language to be used in the module (FR and EN available... contributions are welcome :)).}
+\item{lan}{\code{character/reactive} ("EN"). Language to be used in the module (FR, EN and CN availabled... contributions are welcome :)).}
 
 \item{file_translate}{\code{data.frame/reactive} File for translation.}
 }
