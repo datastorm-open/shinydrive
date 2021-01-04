@@ -20,3 +20,5 @@ Imports:
     DT,
     R.utils, 
     knitr
+Suggests: 
+    testthat
