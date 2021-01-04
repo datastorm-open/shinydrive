@@ -1,15 +1,15 @@
 # shinydrive
 
 
-R package with simple ``Shiny module`` for easily sharing file.
+R package with a simple ``Shiny module`` for easily sharing files.
 
 **Admin** can manage directories & files (add, remove, edit, ...)
 
 **User** can only download files
 
 - files are copied into target directory
-- we just add date/time to file name only on drive
-- and use a ``yaml`` file to save informations
+- we add date/time to filename on the drive
+- use a ``yaml`` file to save informations
 
 ![](inst/demo_app/www/figures/files.PNG)
 
