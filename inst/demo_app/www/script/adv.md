@@ -1,6 +1,6 @@
 ## Manage files with functions
 
-You can also manage files using directly **R** functions : 
+You can also manage files using **R** functions directly: 
 
 
 - ``add_file_in_dir`` to add a new file
