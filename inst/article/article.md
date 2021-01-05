@@ -2,17 +2,22 @@
 
 Dans la famille des packages **shiny** chez **Datastorm**, je demande le petit dernier, à savoir **shinydrive**.
 
-Le but de **shinydrive** est simple : faciliter le partage de fichiers entre différents utilisateurs, le tout avec un module à insérer en quelques lignes de code dans une application **R/shiny** existante. Le module disposant de deux rôles : 
+Le package **shinydrive** a été développé pour répondre à un besoin simple : faciliter le partage de fichiers entre différents utilisateurs d'une application **R/shiny**. Il se compose : 
 
- - **l'administrateur** qui peut de son côté ajouter / modifier / supprimer des fichiers disponibles ensuite en téléchargement, et créer si besoin également des sous-dossiers
+- d'un module **shiny** à insérer en quelques lignes de code et disposant de deux rôles : 
+    + **l'administrateur** qui peut de son côté ajouter / modifier / supprimer des fichiers disponibles ensuite en téléchargement, et créer si besoin également des sous-dossiers
+    + **le lecteur** qui peut uniquement télécharger un ou plusieurs fichiers disponibles
 
- - **le lecteur** qui peut uniquement télécharger un ou plusieurs fichiers disponibles
+- de 3 fonctions **R** permettant si besoin de gérer les fichiers en dehors de l'application **shiny** (génération quotidienne d'un rapport *via* un batch par exemple, et mise à disposition automatique dans l'application)  :
+    + ``add_file_in_dir`` pour ajouter un nouveau fichier
+    + ``edit_file_in_dir`` pour éditer un fichier existant
+    + ``suppress_file_in_dir`` pour supprimer un fichier 
 
-Le fonctionnement du package est très simple : 
+Le fonctionnement du package est le suivant : 
 
 - Le module se branche à un répertoire existant
 - La gestion des fichiers importés se fait ensuite *via* un fichier ``yaml`` permettant de stocker : 
-    + le nom d'origine du fichier ainsi que sa date et heure de mise à disposition. Cela permet en effet de renommer les fichiers dont le répertoire de stockage en évitant les conflits dans le cas ou l'administrateur ajouterai deux fichiers portant le même nom. Cela est totalement transparent pour le lecteur qui retrouvera bien le fichier avec le nom d'origine lors du téléchargement
+    + le nom d'origine du fichier ainsi que sa date et heure de mise à disposition. Cela permet notamment de renommer les fichiers dans le répertoire de stockage en évitant les conflits dans le cas où l'administrateur ajouterait deux fichiers portant le même nom. Cette étape de renommage est totalement transparente pour le lecteur qui retrouvera bien le fichier avec le nom d'origine lors du téléchargement
     + le type de fichier
     + une description optionnelle de son contenu
 
@@ -37,7 +42,7 @@ Côté **shiny**, nous retrouvons une interface claire et épurée, disponible a
 
 ![img](../demo_app/www/figures/utilisateur.PNG)
 
-*N.B : La dernière colonne du tableau, composée de *checkbox*, permet de sélectionner plusieurs fichiers avant de tous les télécharger ou les supprimer (administrateur)*
+*N.B : La dernière colonne du tableau, composée de *checkbox*, permet de sélectionner plusieurs fichiers afin de tous les télécharger ou les supprimer (administrateur)*
 
 ### Installation
 
@@ -59,6 +64,7 @@ runApp(system.file("demo_app", package = "shinydrive"))
 ```
 
 - en ligne à l'adresse suivante : https://datastorm-demo.shinyapps.io/shinydrive/
+
 - et dans la vidéo ci-dessous
 
 ### Utilisation
@@ -96,8 +102,12 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-Finalement, il est également possible d'utiliser de gérer les fichiers en dehors de l'application **shiny** (génération quotidienne d'un rapport *via* un batch par exemple, et mise à disposition automatique dans une application) en utilisant les trois fonctions suivantes :
+L'ensemble des arguments peut être donner de façon *réactive* afin de gérer les différentes options en fonction du profil de l'utilisateur.
 
-- ``add_file_in_dir`` pour ajouter un nouveau fichier
-- ``edit_file_in_dir`` pour éditer un fichier existant
-- ``suppress_file_in_dir`` pour supprimer un fichier 
+### Next steps
+
+Perspectives d'évolutions d'ores et déjà identifiées : 
+
+- chiffrement des fichiers
+- logs de téléchargement
+- Fonction de transformation du fichier avant téléchargement
