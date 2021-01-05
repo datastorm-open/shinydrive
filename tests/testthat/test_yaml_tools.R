@@ -1,12 +1,6 @@
-
-
-
 context("yaml tools")
 
-
-
 test_that("yaml", {
-
 
   ##Test files generation
   demo_zip <- system.file("demo_app/test_files.zip", package = "shinydrive")
@@ -15,14 +9,12 @@ test_that("yaml", {
   dir <- file.path(dir_tp, "test")
   files_test <- list.files(dir, full.names = TRUE)
 
-
   ##Yaml load
   yml <- grep("yaml", files_test)
   yml <- files_test[yml]
 
   ##Yml test
   yml_load <- yaml::yaml.load_file(yml)
-
 
   file <- system.file("translate/translate.csv", package = "shinydrive")
 
@@ -60,7 +52,6 @@ test_that("yaml", {
 
   expect_true(unname(nm2[!nm2%in%nm1]) == "translate_2")
 
-
   # suppress first file
   suppress_file_in_dir(id = "1", dir = dir, yml = yml)
 
@@ -68,7 +59,6 @@ test_that("yaml", {
   nm1 <- unlist(lapply(yml_load3, function(X)X$name))
   nm2 <- unlist(lapply(yml_load4, function(X)X$name))
   expect_false(unname(nm1[1]) %in% unname(nm2))
-
 
   #Dir
   expect_error(  add_file_in_dir(
@@ -78,9 +68,4 @@ test_that("yaml", {
     name = "translate_2",
     description = "This is cool"
   ))
-
-
-
-
-
 })
