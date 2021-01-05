@@ -146,3 +146,11 @@ make_title <- function(x) {
     pattern = "_", replacement = " ", x = x
   ))
 }
+
+
+unbindDTSFM <- function(id, session = getDefaultReactiveDomain()) {
+  session$sendCustomMessage(
+    type = "unbindDTSFM",
+    message = list(id = id)
+  )
+}

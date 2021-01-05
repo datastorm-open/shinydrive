@@ -44,7 +44,8 @@ shiny_drive_ui <- function(id){
     ),
     conditionalPanel("output.have_files === false", ns = ns,
                      uiOutput(ns("msg_no_file"))
-    )
+    ),
+    tags$br()
   )
 }
 
@@ -515,6 +516,9 @@ shiny_drive_server <- function(input,
   })
 
   output$dt <- DT::renderDT({
+
+    unbindDTSFM(ns("dt"))
+
     req(all_files())
     dt <- all_files()
     file_translate <- get_file_translate()
