@@ -214,10 +214,15 @@ shiny_drive_server <- function(input,
 
     isolate({
       if (!is.null(list.available.dirs) ){
+        if(current_dir() %in% list.available.dirs){
+          sel <- current_dir()
+        } else {
+          sel <- NULL
+        }
         updateSelectInput(session,
                           "select_file_dir",
                           choices = list.available.dirs,
-                          selected = current_dir())
+                          selected = sel)
       }
     })
   })
