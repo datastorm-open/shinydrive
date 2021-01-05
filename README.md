@@ -25,6 +25,12 @@ devtools::install_github("datastorm-open/shinydrive")
 
 ### Demo application
 
+*online*
+
+https://datastorm-demo.shinyapps.io/shinydrive/
+
+*local*
+
 ``` r
 runApp(system.file("demo_app", package = "shinydrive"))
 ```
