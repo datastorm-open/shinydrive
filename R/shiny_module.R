@@ -550,6 +550,9 @@ shiny_drive_server <- function(input,
                      file_translate[file_translate$ID == 23, get_lan()],
                      file_translate[file_translate$ID == 24, get_lan()],
                      file_translate[file_translate$ID == 25, get_lan()])
+      
+      
+      target_wd_cols <- c(0, (ncol(dt)-4):(ncol(dt)-1))
     }else{
       if(ncol(dt) < 6){return(NULL)}
 
@@ -559,6 +562,8 @@ shiny_drive_server <- function(input,
                       file_translate[file_translate$ID == 21, get_lan()],
                       file_translate[file_translate$ID == 24, get_lan()],
                       file_translate[file_translate$ID == 25, get_lan()])
+      
+      target_wd_cols <- c(0, (ncol(dt)-2):(ncol(dt)-1))
     }
 
     DT::datatable(
@@ -574,7 +579,7 @@ shiny_drive_server <- function(input,
         drawCallback = DT::JS("function() {Shiny.bindAll(this.api().table().node());}"),
         scrollX = TRUE,
         columnDefs = list(
-          list(width = "50px", targets = (ncol(dt)-4):(ncol(dt)-1))
+          list(width = "50px", targets = target_wd_cols)
         )
       )
     )
