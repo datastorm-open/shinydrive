@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 shiny_test/dir_file/*
+shiny_test/database.sqlite
+inst/demo_app/rsconnect/*
+deploy_rsconnect.R
