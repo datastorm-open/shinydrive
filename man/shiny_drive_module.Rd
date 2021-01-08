@@ -42,6 +42,9 @@ shiny_drive_server(
 
 \item{file_translate}{\code{data.frame/reactive} File for translation.}
 }
+\value{
+Shiny module without return value.
+}
 \description{
 File management shiny module.
 }

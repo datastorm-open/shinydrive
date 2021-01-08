@@ -66,6 +66,8 @@ shiny_drive_ui <- function(id){
 #' @param file_translate \code{data.frame/reactive} File for translation.
 #' @param force_desc \code{boolean/reactive} (FALSE). Force to add an entry description ?
 #'
+#' @return Shiny module without return value.
+#' 
 #' @importFrom utils zip read.csv
 #'
 #' @export

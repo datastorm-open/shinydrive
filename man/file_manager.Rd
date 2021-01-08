@@ -25,6 +25,9 @@ suppress_file_in_dir(id, dir, yml)
 
 \item{id}{\code{character} file id in yaml.}
 }
+\value{
+These functions return a \code{logical} indicating if operation succeeded or not
+}
 \description{
 Add / suppress / edit a file
 }

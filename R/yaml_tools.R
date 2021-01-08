@@ -6,7 +6,9 @@
 #' @param description \code{character} file description.
 #' @param dir \code{character} directory path.
 #' @param id \code{character} file id in yaml.
-#'
+#' 
+#' @return These functions return a \code{logical} indicating if operation succeeded or not
+#' 
 #' @examples
 #' \dontrun{
 #'
@@ -132,7 +134,7 @@ edit_file_in_dir <- function(id,
 
   if(!id %in% names(yml_info)){
     warning("No raw to edit")
-    return(invisible(FALSE))
+    return(FALSE)
   } else {
     if(!is.null(file)){
       if(is.null(name)){
@@ -168,7 +170,7 @@ edit_file_in_dir <- function(id,
     yml_info[[id]] <- mod_list
     yaml::write_yaml(yml_info, yml)
 
-    invisible(TRUE)
+    TRUE
   }
 
 }
@@ -187,12 +189,12 @@ suppress_file_in_dir <- function(id,
 
   if(!id %in% names(yml_info)){
     warning("No raw to remove")
-    return(invisible(FALSE))
+    return(FALSE)
   }else{
     # Write yaml
     file.remove(file.path(dir, paste0(yml_info[[id]]$name, "_", yml_info[[id]]$date_upload, ".", yml_info[[id]]$extension)))
     yml_info <-   yml_info[setdiff(names(yml_info), id)]
     yaml::write_yaml(yml_info, yml)
-    return(invisible(TRUE))
+    return(TRUE)
   }
 }

@@ -7,7 +7,8 @@ Authors@R: c(
     person("Titouan", "Robert", email = "titouan.robert@datastorm.fr", role = c("aut")),
     person("Thibaut", "Dubois", email = "thibaut.dubois@datastorm.fr", role = c("aut"))
     )
-Description: Shiny module. Admin can add, remove, edit and download file. User can only download file.
+Description: Shiny module for easily sharing files between users. Admin can add, remove, edit and download file. 
+    User can only download file. It's also possible to manage files using R functions directly.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
