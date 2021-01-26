@@ -37,23 +37,25 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-
+    
     auth <- secure_server(
         check_credentials = check_credentials("database.sqlite", # will be created
                                               passphrase = "secret")
     )
-    observe({
-        callModule(module = shiny_drive_server,
-                   id = "idm_1",
-                   session = session,
-                   admin_user = input$admin,
-                   save_dir =  "dir_file",
-                   lan = input$langue,
-                   force_desc = input$force_desc)
-    })
-
+    
+    callModule(module = shiny_drive_server,
+               id = "idm_1",
+               session = session,
+               admin_user = reactive(input$admin),
+               save_dir =  "dir_file",
+               lan = reactive(input$langue),
+               force_desc = reactive(input$force_desc))
+    
+    
 }
 
 # Run the application
 shinyApp(ui = secure_app(
     ui, enable_admin = T), server = server)
+
+# shinyApp(ui = ui, server = server)
