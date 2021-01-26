@@ -14,7 +14,7 @@ shiny_drive_ui <- function(id){
     
     # fix fontAwesome init loading...
     fluidRow(
-      actionButton("fix FA", "fix FA", icon = icon("refresh"), style = "display:none"),
+      actionButton("fix FA", "fix FA", icon = icon("refresh"), style = "display:none")
     ),
     
     fluidRow(
