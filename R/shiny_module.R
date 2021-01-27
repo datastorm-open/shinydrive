@@ -211,9 +211,10 @@ shiny_drive_server <- function(input,
   
   observe({
     select_file_dir <- input$select_file_dir
-    req(select_file_dir)
-    if(select_file_dir == "") select_file_dir <- "/"
-    current_dir(select_file_dir)
+    if(!is.null(select_file_dir)){
+      if(select_file_dir == "") select_file_dir <- "/"
+      current_dir(select_file_dir)
+    }
   })
   
   observe({
@@ -303,9 +304,7 @@ shiny_drive_server <- function(input,
     
     list_dirs <- list.available.dirs()
     
-    req(input$new_file_dir_desc)
-    
-    if (input$new_file_dir_desc == ""){
+    if (!is.null(input$new_file_dir_desc) && input$new_file_dir_desc == ""){
       removeModal()
       
       shiny::showModal(shiny::modalDialog(
@@ -390,9 +389,7 @@ shiny_drive_server <- function(input,
     
     file_translate <- get_file_translate()
     
-    req(input$file_dir_desc)
-    
-    if (input$file_dir_desc == ""){
+    if (!is.null(input$file_dir_desc) && input$file_dir_desc == ""){
       # Donner un description au file
       shiny::showModal(shiny::modalDialog(
         title = div(file_translate[file_translate$ID == 5, get_lan()], style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
@@ -531,16 +528,15 @@ shiny_drive_server <- function(input,
     file_info <- input[[paste0("file_load", count_file_load())]]
     name <- input$file_name
     description <- input$description
-    req(get_force_desc())
-    req(file_info)
-    req(name)
-    req(description)
-    if (isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0 && name != "" && length(description) > 0 && description != "") {
-      toggleBtn(session = session, inputId = ns("added_file"), type = "enable")
-    } else if (!isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0  && name != "") {
-      toggleBtn(session = session, inputId = ns("added_file"), type = "enable")
-    } else {
-      toggleBtn(session = session, inputId = ns("added_file"), type = "disable")
+
+    if(!is.null(isolate(get_force_desc()))){
+      if (isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0 && name != "" && length(description) > 0 && description != "") {
+        toggleBtn(session = session, inputId = ns("added_file"), type = "enable")
+      } else if (!isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0  && name != "") {
+        toggleBtn(session = session, inputId = ns("added_file"), type = "enable")
+      } else {
+        toggleBtn(session = session, inputId = ns("added_file"), type = "disable")
+      }
     }
   })
   
@@ -551,10 +547,8 @@ shiny_drive_server <- function(input,
     
     file_info <- input[[paste0("file_load", count_file_load())]]
     
-    req(input$select_file_dir)
-    
     # To folder
-    if(input$select_file_dir != "/"){
+    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
       dir <- file.path(save_dir, input$select_file_dir)
     }else{
       dir <- save_dir
@@ -589,14 +583,13 @@ shiny_drive_server <- function(input,
     unbindDTSFM(ns("dt"))
     
     req(all_files())
-    req(get_admin_user())
-    
+
     dt <- all_files()
     file_translate <- get_file_translate()
     
     if(nrow(dt) == 0) return(NULL)
     
-    if(get_admin_user()){
+    if(!is.null(get_admin_user) && get_admin_user()){
       dt$Edit <- input_btns(ns("edit_file"), uniquenames(), file_translate[file_translate$ID == 16, get_lan()], icon("pencil-square-o"), status = "primary")
       dt$Remove <- input_btns(ns("remove_file"), uniquenames(), file_translate[file_translate$ID == 17, get_lan()], icon("trash-o"), status = "danger")
     }
@@ -667,9 +660,7 @@ shiny_drive_server <- function(input,
     
     save_dir <- isolate(get_save_dir())
     
-    req(input$select_file_dir)
-    
-    if(input$select_file_dir != "/"){
+    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
       fp <- file.path(save_dir, input$select_file_dir,
                       paste0(tools::file_path_sans_ext(download_file_r()$name),"_",
                              download_file_r()$date_time, ".",
@@ -776,8 +767,6 @@ shiny_drive_server <- function(input,
     name <- input$file_name_bis
     description <- input$description_bis
     
-    req(input$load_new)
-    
     if(!is.null(input$load_new)){
       if (input$load_new && isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0 && name != "" && length(description) > 0 && description != "") {
         toggleBtn(session = session, inputId = ns("edited_file"), type = "enable")
@@ -797,16 +786,13 @@ shiny_drive_server <- function(input,
     
     save_dir <- isolate(get_save_dir())
     
-    req(input$load_new)
-    req(input$select_file_dir)
-    
     if(!is.null(input$load_new)){
       file_info <- input[[paste0("file_load", count_file_load())]]
     } else {
       file_info <- NULL
     }
     
-    if(input$select_file_dir != "/"){
+    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
       dir <- file.path(save_dir, input$select_file_dir)
     }else{
       dir <- save_dir
@@ -862,9 +848,7 @@ shiny_drive_server <- function(input,
     
     save_dir <- isolate(get_save_dir())
     
-    req(input$select_file_dir)
-    
-    if(input$select_file_dir != "/"){
+    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
       dir <- file.path(save_dir, input$select_file_dir)
     }else{
       dir <- save_dir
@@ -952,9 +936,7 @@ shiny_drive_server <- function(input,
     
     save_dir <- isolate(get_save_dir())
     
-    req(input$select_file_dir)
-    
-    if(input$select_file_dir != "/"){
+    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
       dir <- file.path(save_dir, input$select_file_dir)
     }else{
       dir <- save_dir
@@ -1001,8 +983,6 @@ shiny_drive_server <- function(input,
     
     save_dir <- isolate(get_save_dir())
     
-    req(input$select_file_dir)
-    
     sapply(1:nrow(files_to_remove()), function(i){
       download_file_r <- files_to_remove()[i, ]
       if((input$select_file_dir != "/")){
@@ -1039,7 +1019,7 @@ shiny_drive_server <- function(input,
       removeModal()
       zip(file, tmp_fp, flags = "-r9X -j")
       
-      tryCatch({file.remove(tmp_fp)}, error = function(e) NULL)
+      tryCatch({file.remove(tmp_fp)}, error = function(e) NULL, warning = function(e) NULL)
     }
   )
 }
