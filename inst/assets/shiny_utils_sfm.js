@@ -18,3 +18,7 @@ Shiny.addCustomMessageHandler('unbindDTSFM', function(data) {
       Shiny.unbindAll(table.DataTable().table().node());
   }
 });
+
+Shiny.addCustomMessageHandler('rm_input_SFM', function(data) {
+  Shiny.onInputChange(data.id, 'null')
+});

@@ -123,15 +123,26 @@ input_btns <- function(inputId, files, tooltip, icon, status = "primary") {
 
 
 
+remove_input <- function(id, session){
+  shiny::removeUI(paste0("#", id), immediate = TRUE)
+  session$sendCustomMessage(
+    type = "rm_input_SFM",
+    message = list(id = id)
+  )
+}
 
-input_checkbox_ui <- function(id, files, checked = FALSE) {
+input_checkbox_ui <- function(id, files, session, checked = FALSE) {
   ns <- NS(id)
+  inputs <- isolate({names(session$input)})
+  rm_inputs <- inputs[grepl(paste0("^", ns("check_")), inputs)]
+  if(length(rm_inputs) > 0){
+    for(i in rm_inputs){
+      remove_input(i, session)
+    }
+  }
   tag <- lapply(
     X = files,
     FUN = function(x) {
-      tp_name <- paste0("#", id, "-", "check_", x)
-      removeUI(tp_name)
-      # res <- checkboxInput(inputId = ns(paste0("check_", x)), label = NULL, value = FALSE)
       res <- tags$input(id = ns(paste0("check_", x)), type = "checkbox", style = "float: right;")
       if(checked) res$attribs$checked <- "checked"
       doRenderTags(res)
