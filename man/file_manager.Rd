@@ -6,7 +6,14 @@
 \alias{suppress_file_in_dir}
 \title{Add / suppress / edit a file}
 \usage{
-add_file_in_dir(file, dir, yml, name, description = "")
+add_file_in_dir(
+  file,
+  dir,
+  yml,
+  name,
+  description = "",
+  date_time = format(Sys.time(), format = "\%Y\%m\%d_\%H\%M\%s")
+)
 
 edit_file_in_dir(id, dir, yml, name = NULL, description = NULL, file = NULL)
 
@@ -22,6 +29,8 @@ suppress_file_in_dir(id, dir, yml)
 \item{name}{\code{character} file name.}
 
 \item{description}{\code{character} file description.}
+
+\item{date_time}{\code{character} file name extension.}
 
 \item{id}{\code{character} file id in yaml.}
 }

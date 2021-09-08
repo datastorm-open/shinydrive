@@ -6,6 +6,8 @@
 #' @param description \code{character} file description.
 #' @param dir \code{character} directory path.
 #' @param id \code{character} file id in yaml.
+#' @param date_time \code{character} file name extension.
+#' 
 #' 
 #' @return These functions return a \code{logical} indicating if operation succeeded or not
 #' 
@@ -69,13 +71,15 @@ add_file_in_dir <- function(file,
                             dir,
                             yml,
                             name,
-                            description = ""){
+                            description = "", 
+                            date_time = format(Sys.time(), format = "%Y%m%d_%H%M%s")){
 
   if(!dir.exists(dir)) stop("Directory '", dir, "' not found")
 
-  date_time <- format(Sys.time(), format = "%Y%m%d_%H%M%s")
+  stopifnot(length(date_time) == 1)
+  stopifnot(date_time == "")
+  
   # To folder
-
   check_copy <- file.copy(file, file.path(dir, paste0(name, "_", date_time, ".", tools::file_ext(file))))
 
   if(isTRUE(check_copy)){
