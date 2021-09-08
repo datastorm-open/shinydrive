@@ -596,7 +596,9 @@ shiny_drive_server <- function(input,
     
     dt$Download <- input_btns(ns("download_file"), uniquenames(), file_translate[file_translate$ID == 18, get_lan()], icon("download"), status = "success")
     
-    dt$Select <- input_checkbox_ui(ns("remove_mult_files"), paste0(uniquenames(), ctname()), checked = FALSE)
+    dt$Select <- input_checkbox_ui(ns("remove_mult_files"), paste0(uniquenames(), ctname()), 
+                                   session = session, 
+                                   checked = FALSE)
     
     file_translate[[get_lan()]] <- as.character(file_translate[[get_lan()]])
     
@@ -647,7 +649,7 @@ shiny_drive_server <- function(input,
         )
       )
     )
-  })
+  }, server = FALSE)
   
   download_file_r <- reactive({
     dt <- all_files()
@@ -861,7 +863,6 @@ shiny_drive_server <- function(input,
   
   # Remove multiple
   r_selected_files <- callModule(module = input_checkbox, id = "remove_mult_files")
-  
   
   # # # Remove all selected files
   output$supress_all <- renderUI({
