@@ -77,7 +77,7 @@ add_file_in_dir <- function(file,
   if(!dir.exists(dir)) stop("Directory '", dir, "' not found")
 
   stopifnot(length(date_time) == 1)
-  stopifnot(date_time == "")
+  stopifnot(date_time != "")
   
   # To folder
   check_copy <- file.copy(file, file.path(dir, paste0(name, "_", date_time, ".", tools::file_ext(file))))
