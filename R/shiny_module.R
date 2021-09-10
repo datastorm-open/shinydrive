@@ -644,6 +644,7 @@ shiny_drive_server <- function(input,
       drawCallback = DT::JS("function() {Shiny.bindAll(this.api().table().node());}"),
       scrollX = TRUE,
       columnDefs = list(
+        list(className =  "dt-head-center", "targets" = "_all"),
         list(width = "50px", targets = target_wd_cols)
       )
     )
