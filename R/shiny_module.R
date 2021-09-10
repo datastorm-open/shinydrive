@@ -66,7 +66,8 @@ shiny_drive_ui <- function(id){
 #' @param dir_access \code{character} vector for dir(s) access. Default to \code{NULL} (all directories)
 #' @param file_translate \code{data.frame/reactive} File for translation.
 #' @param force_desc \code{boolean/reactive} (FALSE). Force to add an entry description ?
-#'
+#' @param datatable_options \code{list}.  \code{DT::datatable} options argument.
+#' 
 #' @return Shiny module without return value.
 #' 
 #' @importFrom utils zip read.csv
@@ -109,7 +110,8 @@ shiny_drive_server <- function(input,
                                file_translate = read.csv(system.file("translate/translate.csv", package = "shinydrive"),
                                                          sep = ";",
                                                          encoding = "UTF-8",
-                                                         check.names=FALSE)) {
+                                                         check.names=FALSE), 
+                               datatable_options = list()) {
   
   ns <- session$ns
   
@@ -147,6 +149,11 @@ shiny_drive_server <- function(input,
     get_force_desc <- shiny::reactive({force_desc})
   } else {
     get_force_desc <- force_desc
+  }
+  if (! shiny::is.reactive(datatable_options)) {
+    get_datatable_options <- shiny::reactive(datatable_options)
+  } else {
+    get_datatable_options <- datatable_options
   }
   
   output$msg_no_file <- renderUI({
@@ -632,6 +639,22 @@ shiny_drive_server <- function(input,
       target_wd_cols <- c(0, (ncol(dt)-2):(ncol(dt)-1))
     }
     
+    default_options = list(
+      language = list(url = file_translate[file_translate$ID == 26, get_lan()]),
+      drawCallback = DT::JS("function() {Shiny.bindAll(this.api().table().node());}"),
+      scrollX = TRUE,
+      columnDefs = list(
+        list(width = "50px", targets = target_wd_cols)
+      )
+    )
+    
+    custom_options <- get_datatable_options()
+    if(length(custom_options) > 0){
+      for(n in names(custom_options)){
+        default_options[[n]] <- custom_options[[n]]
+      }
+    }
+    
     DT::datatable(
       data = dt,
       colnames = make_title(names(dt)),
@@ -640,14 +663,7 @@ shiny_drive_server <- function(input,
       selection = "none",
       extensions = 'AutoFill',
       #extensions = 'FixedColumns', # bug using FixedColumns on checkbox + update table...
-      options = list(
-        language = list(url = file_translate[file_translate$ID == 26, get_lan()]),
-        drawCallback = DT::JS("function() {Shiny.bindAll(this.api().table().node());}"),
-        scrollX = TRUE,
-        columnDefs = list(
-          list(width = "50px", targets = target_wd_cols)
-        )
-      )
+      options = default_options
     )
   }, server = FALSE)
   

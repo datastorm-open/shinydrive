@@ -18,7 +18,8 @@ shiny_drive_server(
   force_desc = FALSE,
   lan = "EN",
   file_translate = read.csv(system.file("translate/translate.csv", package =
-    "shinydrive"), sep = ";", encoding = "UTF-8", check.names = FALSE)
+    "shinydrive"), sep = ";", encoding = "UTF-8", check.names = FALSE),
+  datatable_options = list()
 )
 }
 \arguments{
@@ -41,6 +42,8 @@ shiny_drive_server(
 \item{lan}{\code{character/reactive} ("EN"). Language to be used in the module (FR, EN and CN availabled... contributions are welcome :)).}
 
 \item{file_translate}{\code{data.frame/reactive} File for translation.}
+
+\item{datatable_options}{\code{list}.  \code{DT::datatable} options argument.}
 }
 \value{
 Shiny module without return value.
