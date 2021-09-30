@@ -5,6 +5,7 @@
 * fix DT checkbox
 * shiny module : can now pass yml path
 * hidden dir selection for no admin if one dir only
+* new fct get_yaml_info
 
 # shinydrive 0.1.1
 

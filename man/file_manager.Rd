@@ -4,6 +4,7 @@
 \alias{add_file_in_dir}
 \alias{edit_file_in_dir}
 \alias{suppress_file_in_dir}
+\alias{get_yaml_info}
 \title{Add / suppress / edit a file}
 \usage{
 add_file_in_dir(
@@ -26,6 +27,14 @@ edit_file_in_dir(
 )
 
 suppress_file_in_dir(id, dir, yml)
+
+get_yaml_info(
+  yml,
+  recorded_name = TRUE,
+  date_time_format = "\%Y\%m\%d_\%H\%M\%s",
+  add_img = FALSE,
+  img_size = 30
+)
 }
 \arguments{
 \item{file}{\code{character} file (to copy) path.}
@@ -41,6 +50,12 @@ suppress_file_in_dir(id, dir, yml)
 \item{date_time_format}{\code{character} DateTime format.}
 
 \item{id}{\code{character} file id in yaml.}
+
+\item{recorded_name}{\code{logical} : add recorded name (with date_time extension) in output ?}
+
+\item{add_img}{\code{logical} : Use in shiny module for adding file extension img.}
+
+\item{img_size}{\code{integer} : Use in shiny module for adding file extension img.}
 }
 \value{
 These functions return a \code{logical} indicating if operation succeeded or not
@@ -69,6 +84,7 @@ add_file_in_dir(
 
 yaml::yaml.load_file(yml)
 list.files(dir)
+get_yaml_info(yml)
 
 # add second file
 add_file_in_dir(
@@ -81,6 +97,7 @@ add_file_in_dir(
 
 yaml::yaml.load_file(yml)
 list.files(dir)
+get_yaml_info(yml, recorded_name = F)
 
 # modify first file
 edit_file_in_dir(

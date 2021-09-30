@@ -2,6 +2,7 @@
 
 export(add_file_in_dir)
 export(edit_file_in_dir)
+export(get_yaml_info)
 export(shiny_drive_server)
 export(shiny_drive_ui)
 export(suppress_file_in_dir)

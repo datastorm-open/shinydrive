@@ -7,7 +7,9 @@
 #' @param dir \code{character} directory path.
 #' @param id \code{character} file id in yaml.
 #' @param date_time_format \code{character} DateTime format.
-#' 
+#' @param recorded_name \code{logical} : add recorded name (with date_time extension) in output ?
+#' @param add_img \code{logical} : Use in shiny module for adding file extension img.
+#' @param img_size \code{integer} : Use in shiny module for adding file extension img.
 #' 
 #' @return These functions return a \code{logical} indicating if operation succeeded or not
 #' 
@@ -32,7 +34,8 @@
 #'
 #' yaml::yaml.load_file(yml)
 #' list.files(dir)
-#'
+#' get_yaml_info(yml)
+#' 
 #' # add second file
 #' add_file_in_dir(
 #'   file = file,
@@ -44,7 +47,8 @@
 #'
 #' yaml::yaml.load_file(yml)
 #' list.files(dir)
-#'
+#' get_yaml_info(yml, recorded_name = F)
+#' 
 #' # modify first file
 #' edit_file_in_dir(
 #'   id = "2", 
@@ -204,4 +208,61 @@ suppress_file_in_dir <- function(id,
     yaml::write_yaml(yml_info, yml)
     return(TRUE)
   }
+}
+
+
+.gyc <- function(yml_info, elem){
+  unname(unlist(lapply(yml_info, function(X){X[elem]})))
+}
+
+#' @importFrom knitr image_uri
+.img_uri <- function(x, img_size = 30) { sprintf(paste0('<img src="%s" height = "', img_size, '"/>'), knitr::image_uri(x)) }
+
+#' @rdname file_manager
+#' @export
+get_yaml_info <- function(yml, 
+                          recorded_name = TRUE,
+                          date_time_format = "%Y%m%d_%H%M%s", 
+                          add_img = FALSE, 
+                          img_size = 30){
+  
+  if(!is.null(yml) && file.exists(yml)){
+    yml_info <- yaml::read_yaml(yml)
+    if(is.null(yml_info)) return(NULL)
+    if(length(yml_info) == 0) return(NULL)
+    id <- names(yml_info)
+    extension <- .gyc(yml_info, "extension")
+    names <- paste0(.gyc(yml_info, "name"), ".", extension)
+    date_time <- .gyc(yml_info, "date_upload")
+    
+    if(recorded_name){
+      recorded_names <- paste0(tools::file_path_sans_ext(names),"_", date_time, ".", extension)
+    }
+    date_time <- format(as.POSIXct(as.character(date_time), format = date_time_format))
+    
+    description <- .gyc(yml_info, "description")
+    
+    file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = F)
+    full_file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = T)
+    ind_unknown <- full_file_ext[grep("unknown.png$", full_file_ext)]
+    png_extension <- sapply(extension, function(ext){
+      ind_png <- grep(paste0("^", tolower(ext), ".png$"), file_ext)
+      if(length(ind_png) > 0){
+        .img_uri(full_file_ext[ind_png], img_size = img_size)
+      } else {
+        .img_uri(ind_unknown, img_size = img_size)
+      }
+    })
+    
+    dt <- data.frame(id = id, type = unname(png_extension), 
+                     name = names, date_time = date_time, 
+                     description = description, stringsAsFactors = FALSE)
+    
+    if(!add_img) dt$type <- NULL
+    if(recorded_name) dt$recorded_name <- recorded_names
+    
+  } else {
+    dt <- NULL
+  }
+  dt
 }

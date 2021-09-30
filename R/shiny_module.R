@@ -179,7 +179,7 @@ shiny_drive_server <- function(input,
     get_admin_user()
   })
   outputOptions(output, "is_admin", suspendWhenHidden = FALSE)
- 
+  
   output$show_dir <- reactive({
     if(is.null(get_admin_user())){
       FALSE
@@ -487,7 +487,12 @@ shiny_drive_server <- function(input,
   
   all_files <- reactiveFileReader(1000, session, req_yml, function(x){
     if (!is.null(x) && length(x) > 0 && file.exists(x)){
-      .yaml_to_dt(x)
+      get_yaml_info(x, 
+                    recorded_name = TRUE,
+                    date_time_format = date_time_format, 
+                    add_img = TRUE, 
+                    img_size = 30
+      )
     } else {
       NULL
     }})
@@ -556,7 +561,7 @@ shiny_drive_server <- function(input,
     file_info <- input[[paste0("file_load", count_file_load())]]
     name <- input$file_name
     description <- input$description
-
+    
     if(!is.null(isolate(get_force_desc()))){
       if (isolate(get_force_desc()) && length(file_info) > 0 && length(name) > 0 && name != "" && length(description) > 0 && description != "") {
         toggleBtn(session = session, inputId = ns("added_file"), type = "enable")
@@ -598,7 +603,7 @@ shiny_drive_server <- function(input,
   uniquenames <- reactive({
     req(all_files())
     dt <- all_files()
-    uniquenames <- paste0(tools::file_path_sans_ext(dt$name), dt$date_time)
+    uniquenames <- gsub("([[:space:]])+|([[:punct:]])+", "_", paste0(tools::file_path_sans_ext(dt$name), dt$date_time))
     uniquenames
   })
   
@@ -612,8 +617,10 @@ shiny_drive_server <- function(input,
     unbindDTSFM(ns("dt"))
     
     req(all_files())
-
+    
     dt <- all_files()
+    dt$recorded_name <- NULL
+    
     file_translate <- get_file_translate()
     
     if(nrow(dt) == 0) return(NULL)
@@ -630,8 +637,6 @@ shiny_drive_server <- function(input,
                                    checked = FALSE)
     
     file_translate[[get_lan()]] <- as.character(file_translate[[get_lan()]])
-    
-    dt$date_time <- format(as.POSIXct(as.character(dt$date_time), format = date_time_format))
     
     dt$id <- NULL
     
@@ -702,15 +707,9 @@ shiny_drive_server <- function(input,
     save_dir <- isolate(get_save_dir())
     
     if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      fp <- file.path(save_dir, input$select_file_dir,
-                      paste0(tools::file_path_sans_ext(download_file_r()$name),"_",
-                             download_file_r()$date_time, ".",
-                             tools::file_ext(download_file_r()$name)))
+      fp <- file.path(save_dir, input$select_file_dir, download_file_r()$recorded_name)
     }else{
-      fp <- file.path(save_dir,
-                      paste0(tools::file_path_sans_ext(download_file_r()$name),"_",
-                             download_file_r()$date_time, ".",
-                             tools::file_ext(download_file_r()$name)))
+      fp <- file.path(save_dir,download_file_r()$recorded_name)
     }
     fp
   })
@@ -1027,17 +1026,11 @@ shiny_drive_server <- function(input,
     sapply(1:nrow(files_to_remove()), function(i){
       download_file_r <- files_to_remove()[i, ]
       if((input$select_file_dir != "/")){
-        fp <- file.path(save_dir, input$select_file_dir,
-                        paste0(tools::file_path_sans_ext(download_file_r$name),"_",
-                               download_file_r$date_time, ".",
-                               tools::file_ext(download_file_r$name)))
+        fp <- file.path(save_dir, input$select_file_dir, download_file_r$recorded_name)
         names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name),  ".",
                             tools::file_ext(download_file_r$name))
       }else{
-        fp <- file.path(save_dir,
-                        paste0(tools::file_path_sans_ext(download_file_r$name),"_",
-                               download_file_r$date_time, ".",
-                               tools::file_ext(download_file_r$name)))
+        fp <- file.path(save_dir, download_file_r$recorded_name)
         names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name),  ".",
                             tools::file_ext(download_file_r$name))
       }
