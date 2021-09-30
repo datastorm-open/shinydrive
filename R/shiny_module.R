@@ -587,16 +587,29 @@ shiny_drive_server <- function(input,
       dir <- save_dir
     }
     
-    add_file_in_dir(
-      file = file_info$datapath,
-      dir = dir,
-      name = input$file_name,
-      yml = req_yml(),
-      description = input$description, 
-      date_time_format = date_time_format
-    )
     
     removeModal()
+    
+    ctrl_add <- tryCatch({
+      add_file_in_dir(
+        file = file_info$datapath,
+        dir = dir,
+        name = input$file_name,
+        yml = req_yml(),
+        description = input$description, 
+        date_time_format = date_time_format
+      )
+    },
+    error = function(e){
+      showModal(
+        modalDialog(
+          title = "Error adding file",
+          easyClose = TRUE,
+          footer = NULL,
+          e$message
+        ))
+      NULL
+    })
     
   }, ignoreInit = TRUE)
   
@@ -839,16 +852,29 @@ shiny_drive_server <- function(input,
     }
     
     # Write yaml edited
-    edit_file_in_dir(id = as.character(file_to_edit()$id),
-                     dir = dir,
-                     yml = req_yml(),
-                     name = input$file_name_bis,
-                     description = input$description_bis,
-                     file = file_info$datapath, 
-                     date_time_format = date_time_format)
-    
     removeModal()
-  }, ignoreInit = TRUE)
+    
+    ctrl_edit <- tryCatch({
+      edit_file_in_dir(id = as.character(file_to_edit()$id),
+                       dir = dir,
+                       yml = req_yml(),
+                       name = input$file_name_bis,
+                       description = input$description_bis,
+                       file = file_info$datapath, 
+                       date_time_format = date_time_format)
+    },
+    error = function(e){
+      showModal(
+        modalDialog(
+          title = "Error editing file",
+          easyClose = TRUE,
+          footer = NULL,
+          e$message
+        ))
+      NULL
+    })
+    
+}, ignoreInit = TRUE)
   # End edit file
   
   
@@ -895,9 +921,23 @@ shiny_drive_server <- function(input,
       dir <- save_dir
     }
     
-    suppress_file_in_dir(id = as.character(file_to_remove()$id),
-                         dir = dir,
-                         yml = req_yml())
+    
+    ctrl_rm <- tryCatch({
+      suppress_file_in_dir(id = as.character(file_to_remove()$id),
+                           dir = dir,
+                           yml = req_yml())
+    },
+    error = function(e){
+      showModal(
+        modalDialog(
+          title = "Error removing file",
+          easyClose = TRUE,
+          footer = NULL,
+          e$message
+        ))
+      NULL
+    })
+    
   }, ignoreInit = TRUE)
   
   # Remove multiple
@@ -983,10 +1023,22 @@ shiny_drive_server <- function(input,
     }
     
     for(i in 1:nrow(files_to_remove())){
-      suppress_file_in_dir(id = as.character(files_to_remove()[i, "id"]),
-                           dir = dir,
-                           yml = req_yml())
       
+      ctrl_rm <- tryCatch({
+        suppress_file_in_dir(id = as.character(files_to_remove()[i, "id"]),
+                             dir = dir,
+                             yml = req_yml())
+      },
+      error = function(e){
+        showModal(
+          modalDialog(
+            title = "Error removing file",
+            easyClose = TRUE,
+            footer = NULL,
+            e$message
+          ))
+        NULL
+      })
     }
   }, ignoreInit = TRUE)
   
@@ -1056,4 +1108,4 @@ shiny_drive_server <- function(input,
       tryCatch({file.remove(tmp_fp)}, error = function(e) NULL, warning = function(e) NULL)
     }
   )
-}
+  }
