@@ -49,7 +49,8 @@ server <- function(input, output, session) {
                admin_user = reactive(input$admin),
                save_dir =  "dir_file",
                lan = reactive(input$langue),
-               force_desc = reactive(input$force_desc))
+               force_desc = reactive(input$force_desc), 
+               yml = "custom.yml")
     
     
 }

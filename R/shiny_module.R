@@ -67,6 +67,7 @@ shiny_drive_ui <- function(id){
 #' @param file_translate \code{data.frame/reactive} File for translation.
 #' @param force_desc \code{boolean/reactive} (FALSE). Force to add an entry description ?
 #' @param datatable_options \code{list}.  \code{DT::datatable} options argument.
+#' @param yml \code{character} yaml configuration file name.
 #' 
 #' @return Shiny module without return value.
 #' 
@@ -111,9 +112,16 @@ shiny_drive_server <- function(input,
                                                          sep = ";",
                                                          encoding = "UTF-8",
                                                          check.names=FALSE), 
-                               datatable_options = list()) {
+                               datatable_options = list(), 
+                               yml = "files_desc.yaml") {
   
   ns <- session$ns
+  
+  if (!shiny::is.reactive(yml)){
+    get_yml <- shiny::reactive({yml})
+  } else {
+    get_yml <- yml
+  }
   
   if (!shiny::is.reactive(save_dir)){
     get_save_dir <- shiny::reactive({save_dir})
@@ -426,7 +434,7 @@ shiny_drive_server <- function(input,
         fold_path <- file.path(save_dir, input$file_dir_desc)
         create_test <- dir.create(fold_path)
         if (create_test){
-          file.create(file.path(fold_path, "files_desc.yaml"))
+          file.create(file.path(fold_path, isolate(get_yml())))
           current_dir(input$file_dir_desc)
           removeModal()
           shiny::showModal(shiny::modalDialog(
@@ -447,15 +455,15 @@ shiny_drive_server <- function(input,
     }
   }, ignoreInit = TRUE)
   
-  yml <- reactive({
+  req_yml <- reactive({
     
     save_dir <- get_save_dir()
     
     if(!is.null(input$select_file_dir) && input$select_file_dir != ""){
       if(input$select_file_dir !="/"){
-        file.path(save_dir, input$select_file_dir, "files_desc.yaml")
+        file.path(save_dir, input$select_file_dir, isolate(get_yml()))
       }else{
-        file.path(save_dir, "files_desc.yaml")
+        file.path(save_dir, isolate(get_yml()))
       }
     } else {
       ""
@@ -464,7 +472,7 @@ shiny_drive_server <- function(input,
   
   # End gestion dossier
   
-  all_files <- reactiveFileReader(1000, session, yml, function(x){
+  all_files <- reactiveFileReader(1000, session, req_yml, function(x){
     if (!is.null(x) && length(x) > 0 && file.exists(x)){
       .yaml_to_dt(x)
     } else {
@@ -565,7 +573,7 @@ shiny_drive_server <- function(input,
       file = file_info$datapath,
       dir = dir,
       name = input$file_name,
-      yml = yml(),
+      yml = req_yml(),
       description = input$description
     )
     
@@ -820,7 +828,7 @@ shiny_drive_server <- function(input,
     # Write yaml edited
     edit_file_in_dir(id = as.character(file_to_edit()$id),
                      dir = dir,
-                     yml = yml(),
+                     yml = req_yml(),
                      name = input$file_name_bis,
                      description = input$description_bis,
                      file = file_info$datapath)
@@ -875,7 +883,7 @@ shiny_drive_server <- function(input,
     
     suppress_file_in_dir(id = as.character(file_to_remove()$id),
                          dir = dir,
-                         yml = yml())
+                         yml = req_yml())
   }, ignoreInit = TRUE)
   
   # Remove multiple
@@ -963,7 +971,7 @@ shiny_drive_server <- function(input,
     for(i in 1:nrow(files_to_remove())){
       suppress_file_in_dir(id = as.character(files_to_remove()[i, "id"]),
                            dir = dir,
-                           yml = yml())
+                           yml = req_yml())
       
     }
   }, ignoreInit = TRUE)

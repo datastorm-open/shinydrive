@@ -19,7 +19,8 @@ shiny_drive_server(
   lan = "EN",
   file_translate = read.csv(system.file("translate/translate.csv", package =
     "shinydrive"), sep = ";", encoding = "UTF-8", check.names = FALSE),
-  datatable_options = list()
+  datatable_options = list(),
+  yml = "files_desc.yaml"
 )
 }
 \arguments{
@@ -44,6 +45,8 @@ shiny_drive_server(
 \item{file_translate}{\code{data.frame/reactive} File for translation.}
 
 \item{datatable_options}{\code{list}.  \code{DT::datatable} options argument.}
+
+\item{yml}{\code{character} yaml configuration file name.}
 }
 \value{
 Shiny module without return value.
