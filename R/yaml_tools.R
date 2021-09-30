@@ -23,12 +23,11 @@
 #'
 #' file <- system.file("translate/translate.csv", package = "shinydrive")
 #'
-#' # add one first file
+#' # add one first file with current name
 #' add_file_in_dir(
 #'   file = file,
 #'   dir = dir,
 #'   yml = yml,
-#'   name = "translate1",
 #'   description = ""
 #' )
 #'
@@ -36,7 +35,7 @@
 #' list.files(dir)
 #' get_yaml_info(yml)
 #' 
-#' # add second file
+#' # add same file twice, changing name
 #' add_file_in_dir(
 #'   file = file,
 #'   dir = dir,
@@ -76,7 +75,7 @@
 add_file_in_dir <- function(file,
                             dir,
                             yml,
-                            name,
+                            name = tools::file_path_sans_ext(basename(file)),
                             description = "", 
                             date_time_format = "%Y%m%d_%H%M%s"){
 
