@@ -50,7 +50,8 @@ server <- function(input, output, session) {
                save_dir =  "dir_file",
                lan = reactive(input$langue),
                force_desc = reactive(input$force_desc), 
-               yml = "custom.yml")
+               yml = "custom.yml", 
+               date_time_format = "%Y%m%d_%H%M")
     
     
 }

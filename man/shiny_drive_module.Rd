@@ -20,7 +20,8 @@ shiny_drive_server(
   file_translate = read.csv(system.file("translate/translate.csv", package =
     "shinydrive"), sep = ";", encoding = "UTF-8", check.names = FALSE),
   datatable_options = list(),
-  yml = "files_desc.yaml"
+  yml = "files_desc.yaml",
+  date_time_format = "\%Y\%m\%d_\%H\%M\%s"
 )
 }
 \arguments{
@@ -32,9 +33,9 @@ shiny_drive_server(
 
 \item{session}{shiny input}
 
-\item{save_dir}{\code{character}. Main directory of the files.}
+\item{save_dir}{\code{character/reactive}. Main directory of the files.}
 
-\item{dir_access}{\code{character} vector for dir(s) access. Default to \code{NULL} (all directories)}
+\item{dir_access}{\code{character/reactive} vector for dir(s) access. Default to \code{NULL} (all directories)}
 
 \item{admin_user}{\code{boolean/reactive} (TRUE). Admin user or not.}
 
@@ -44,9 +45,11 @@ shiny_drive_server(
 
 \item{file_translate}{\code{data.frame/reactive} File for translation.}
 
-\item{datatable_options}{\code{list}.  \code{DT::datatable} options argument.}
+\item{datatable_options}{\code{list/reactive}.  \code{DT::datatable} options argument.}
 
-\item{yml}{\code{character} yaml configuration file name.}
+\item{yml}{\code{characte/reactiver} yaml configuration file name.}
+
+\item{date_time_format}{\code{character} file name extension.}
 }
 \value{
 Shiny module without return value.

@@ -60,14 +60,15 @@ shiny_drive_ui <- function(id){
 #' @param input shiny input
 #' @param output shiny input
 #' @param session shiny input
-#' @param save_dir \code{character}. Main directory of the files.
+#' @param save_dir \code{character/reactive}. Main directory of the files.
 #' @param admin_user \code{boolean/reactive} (TRUE). Admin user or not.
 #' @param lan \code{character/reactive} ("EN"). Language to be used in the module (FR, EN and CN availabled... contributions are welcome :)).
-#' @param dir_access \code{character} vector for dir(s) access. Default to \code{NULL} (all directories)
+#' @param dir_access \code{character/reactive} vector for dir(s) access. Default to \code{NULL} (all directories)
 #' @param file_translate \code{data.frame/reactive} File for translation.
 #' @param force_desc \code{boolean/reactive} (FALSE). Force to add an entry description ?
-#' @param datatable_options \code{list}.  \code{DT::datatable} options argument.
-#' @param yml \code{character} yaml configuration file name.
+#' @param datatable_options \code{list/reactive}.  \code{DT::datatable} options argument.
+#' @param yml \code{characte/reactiver} yaml configuration file name.
+#' @param date_time_format \code{character} file name extension.
 #' 
 #' @return Shiny module without return value.
 #' 
@@ -113,7 +114,8 @@ shiny_drive_server <- function(input,
                                                          encoding = "UTF-8",
                                                          check.names=FALSE), 
                                datatable_options = list(), 
-                               yml = "files_desc.yaml") {
+                               yml = "files_desc.yaml", 
+                               date_time_format = "%Y%m%d_%H%M%s") {
   
   ns <- session$ns
   
@@ -574,7 +576,8 @@ shiny_drive_server <- function(input,
       dir = dir,
       name = input$file_name,
       yml = req_yml(),
-      description = input$description
+      description = input$description, 
+      date_time_format = date_time_format
     )
     
     removeModal()
@@ -617,7 +620,7 @@ shiny_drive_server <- function(input,
     
     file_translate[[get_lan()]] <- as.character(file_translate[[get_lan()]])
     
-    dt$date_time <- format(as.POSIXct(as.character(dt$date_time), format = "%Y%m%d_%H%M%s"))
+    dt$date_time <- format(as.POSIXct(as.character(dt$date_time), format = date_time_format))
     
     dt$id <- NULL
     
@@ -831,7 +834,8 @@ shiny_drive_server <- function(input,
                      yml = req_yml(),
                      name = input$file_name_bis,
                      description = input$description_bis,
-                     file = file_info$datapath)
+                     file = file_info$datapath, 
+                     date_time_format = date_time_format)
     
     removeModal()
   }, ignoreInit = TRUE)

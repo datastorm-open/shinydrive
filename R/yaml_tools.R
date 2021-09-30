@@ -1,12 +1,12 @@
 #' Add / suppress / edit a file
 #'
 #' @param file \code{character} file (to copy) path.
-#' @param yml \code{character} yaml file path.
+#' @param yml \code{character} yaml configuration file full path.
 #' @param name \code{character} file name.
 #' @param description \code{character} file description.
 #' @param dir \code{character} directory path.
 #' @param id \code{character} file id in yaml.
-#' @param date_time \code{character} file name extension.
+#' @param date_time_format \code{character} file name extension.
 #' 
 #' 
 #' @return These functions return a \code{logical} indicating if operation succeeded or not
@@ -72,12 +72,11 @@ add_file_in_dir <- function(file,
                             yml,
                             name,
                             description = "", 
-                            date_time = format(Sys.time(), format = "%Y%m%d_%H%M%s")){
+                            date_time_format = format(Sys.time(), format = "%Y%m%d_%H%M%s")){
 
   if(!dir.exists(dir)) stop("Directory '", dir, "' not found")
 
-  stopifnot(length(date_time) == 1)
-  stopifnot(date_time != "")
+  date_time <- format(Sys.time(), format = date_time_format)
   
   # To folder
   check_copy <- file.copy(file, file.path(dir, paste0(name, "_", date_time, ".", tools::file_ext(file))))
@@ -128,11 +127,14 @@ edit_file_in_dir <- function(id,
                             yml,
                             name = NULL,
                             description = NULL,
-                            file = NULL){
+                            file = NULL, 
+                            date_time_format = "%Y%m%d_%H%M%s"){
 
   if(!dir.exists(dir)) stop("Directory '", dir, "' not found")
   if(!file.exists(yml)) stop("YAML '", yml, "' not found")
 
+  date_time <- format(Sys.time(), format = date_time_format)
+  
   # Read yaml
   yml_info <- yaml::read_yaml(yml)
 
@@ -146,7 +148,6 @@ edit_file_in_dir <- function(id,
       } else {
         write_name <- name
       }
-      date_time <- format(Sys.time(), format = "%Y%m%d_%H%M%s")
       old_file <- file.path(dir, paste0(yml_info[[id]]$name, "_", yml_info[[id]]$date_upload, ".", yml_info[[id]]$extension))
       if(file.exists(old_file)) file.remove(old_file)
 

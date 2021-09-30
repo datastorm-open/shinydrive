@@ -12,10 +12,18 @@ add_file_in_dir(
   yml,
   name,
   description = "",
-  date_time = format(Sys.time(), format = "\%Y\%m\%d_\%H\%M\%s")
+  date_time_format = format(Sys.time(), format = "\%Y\%m\%d_\%H\%M\%s")
 )
 
-edit_file_in_dir(id, dir, yml, name = NULL, description = NULL, file = NULL)
+edit_file_in_dir(
+  id,
+  dir,
+  yml,
+  name = NULL,
+  description = NULL,
+  file = NULL,
+  date_time_format = "\%Y\%m\%d_\%H\%M\%s"
+)
 
 suppress_file_in_dir(id, dir, yml)
 }
@@ -24,13 +32,13 @@ suppress_file_in_dir(id, dir, yml)
 
 \item{dir}{\code{character} directory path.}
 
-\item{yml}{\code{character} yaml file path.}
+\item{yml}{\code{character} yaml configuration file full path.}
 
 \item{name}{\code{character} file name.}
 
 \item{description}{\code{character} file description.}
 
-\item{date_time}{\code{character} file name extension.}
+\item{date_time_format}{\code{character} file name extension.}
 
 \item{id}{\code{character} file id in yaml.}
 }
