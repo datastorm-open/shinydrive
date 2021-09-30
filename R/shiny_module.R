@@ -17,22 +17,24 @@ shiny_drive_ui <- function(id){
       actionButton("fix FA", "fix FA", icon = icon("refresh"), style = "display:none")
     ),
     
-    fluidRow(
-      column(12,
-             fluidRow(
-               column(2,
-                      uiOutput(ns("ui_title"))
-               ),
-               column(4,
-                      style = "margin-left: 15px;",
-                      selectInput(ns("select_file_dir"), NULL, choices = NULL, selected = NULL, width = "100%")
-               ),
-               conditionalPanel("output.is_admin", ns = ns,
-                                column(5, uiOutput(ns("admin_dir_btn"))
+    conditionalPanel(condition = "output.show_dir", ns = ns,
+                     fluidRow(
+                       column(12,
+                              fluidRow(
+                                column(2,
+                                       uiOutput(ns("ui_title"))
+                                ),
+                                column(4,
+                                       style = "margin-left: 15px;",
+                                       selectInput(ns("select_file_dir"), NULL, choices = NULL, selected = NULL, width = "100%")
+                                ),
+                                conditionalPanel("output.is_admin", ns = ns,
+                                                 column(5, uiOutput(ns("admin_dir_btn"))
+                                                 )
                                 )
-               )
-             )
-      )
+                              )
+                       )
+                     ) 
     ),
     # End fold management
     conditionalPanel("output.is_admin", ns = ns,
@@ -177,6 +179,15 @@ shiny_drive_server <- function(input,
     get_admin_user()
   })
   outputOptions(output, "is_admin", suspendWhenHidden = FALSE)
+ 
+  output$show_dir <- reactive({
+    if(is.null(get_admin_user())){
+      FALSE
+    } else {
+      (get_admin_user() | (!get_admin_user() & length(list.available.dirs()) >= 1))
+    }
+  })
+  outputOptions(output, "show_dir", suspendWhenHidden = FALSE)
   
   output$ui_title <- renderUI({
     file_translate <- get_file_translate()
