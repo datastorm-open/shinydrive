@@ -70,7 +70,7 @@ shiny_drive_ui <- function(id){
 #' @param force_desc \code{boolean/reactive} (FALSE). Force to add an entry description ?
 #' @param datatable_options \code{list/reactive}.  \code{DT::datatable} options argument.
 #' @param yml \code{characte/reactiver} yaml configuration file name.
-#' @param date_time_format \code{character} file name extension.
+#' @param date_time_format \code{character} DateTime format.
 #' 
 #' @return Shiny module without return value.
 #' 

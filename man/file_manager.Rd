@@ -12,7 +12,7 @@ add_file_in_dir(
   yml,
   name,
   description = "",
-  date_time_format = format(Sys.time(), format = "\%Y\%m\%d_\%H\%M\%s")
+  date_time_format = "\%Y\%m\%d_\%H\%M\%s"
 )
 
 edit_file_in_dir(
@@ -38,7 +38,7 @@ suppress_file_in_dir(id, dir, yml)
 
 \item{description}{\code{character} file description.}
 
-\item{date_time_format}{\code{character} file name extension.}
+\item{date_time_format}{\code{character} DateTime format.}
 
 \item{id}{\code{character} file id in yaml.}
 }
@@ -61,7 +61,7 @@ file <- system.file("translate/translate.csv", package = "shinydrive")
 # add one first file
 add_file_in_dir(
   file = file,
-  dir= dir,
+  dir = dir,
   yml = yml,
   name = "translate1",
   description = ""
@@ -73,7 +73,7 @@ list.files(dir)
 # add second file
 add_file_in_dir(
   file = file,
-  dir= dir,
+  dir = dir,
   yml = yml,
   name = "translate_2",
   description = "This is cool"
@@ -84,7 +84,9 @@ list.files(dir)
 
 # modify first file
 edit_file_in_dir(
-  id = "2", dir = dir, yml = yml,
+  id = "2", 
+  dir = dir, 
+  yml = yml,
   name = "translate_2_mod",
   description = "So cool"
 )

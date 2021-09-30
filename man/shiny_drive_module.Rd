@@ -49,7 +49,7 @@ shiny_drive_server(
 
 \item{yml}{\code{characte/reactiver} yaml configuration file name.}
 
-\item{date_time_format}{\code{character} file name extension.}
+\item{date_time_format}{\code{character} DateTime format.}
 }
 \value{
 Shiny module without return value.

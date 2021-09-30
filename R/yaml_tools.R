@@ -6,7 +6,7 @@
 #' @param description \code{character} file description.
 #' @param dir \code{character} directory path.
 #' @param id \code{character} file id in yaml.
-#' @param date_time_format \code{character} file name extension.
+#' @param date_time_format \code{character} DateTime format.
 #' 
 #' 
 #' @return These functions return a \code{logical} indicating if operation succeeded or not
@@ -24,7 +24,7 @@
 #' # add one first file
 #' add_file_in_dir(
 #'   file = file,
-#'   dir= dir,
+#'   dir = dir,
 #'   yml = yml,
 #'   name = "translate1",
 #'   description = ""
@@ -36,7 +36,7 @@
 #' # add second file
 #' add_file_in_dir(
 #'   file = file,
-#'   dir= dir,
+#'   dir = dir,
 #'   yml = yml,
 #'   name = "translate_2",
 #'   description = "This is cool"
@@ -47,7 +47,9 @@
 #'
 #' # modify first file
 #' edit_file_in_dir(
-#'   id = "2", dir = dir, yml = yml,
+#'   id = "2", 
+#'   dir = dir, 
+#'   yml = yml,
 #'   name = "translate_2_mod",
 #'   description = "So cool"
 #' )
@@ -72,7 +74,7 @@ add_file_in_dir <- function(file,
                             yml,
                             name,
                             description = "", 
-                            date_time_format = format(Sys.time(), format = "%Y%m%d_%H%M%s")){
+                            date_time_format = "%Y%m%d_%H%M%s"){
 
   if(!dir.exists(dir)) stop("Directory '", dir, "' not found")
 
