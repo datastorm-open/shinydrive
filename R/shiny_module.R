@@ -199,13 +199,13 @@ shiny_drive_server <- function(input,
     file_translate <- get_file_translate()
     req(file_translate)
     fluidRow(
-      column(3, actionButton(ns("create_file_dir_bis"),file_translate[file_translate$ID == 2, get_lan()], icon = icon("plus"))),
-      column(3, 
+      column(4, actionButton(ns("create_file_dir_bis"),file_translate[file_translate$ID == 2, get_lan()], icon = icon("plus"))),
+      column(4, 
              conditionalPanel("input.select_file_dir !== '/'", ns = ns,
                               actionButton(ns("rename_file_dir"), file_translate[file_translate$ID == 3, get_lan()], icon = icon("edit"))
              )
       ),
-      column(3, 
+      column(4, 
              conditionalPanel("input.select_file_dir !== '/'", ns = ns,
                               actionButton(ns("remove_file_dir"), file_translate[file_translate$ID == 47, get_lan()], icon = icon("trash"))
              )
@@ -225,14 +225,22 @@ shiny_drive_server <- function(input,
     )
   })
   # gestion dossier
-  list.available.dirs <- reactiveFileReader(1000, session, get_save_dir,
-                                            function(x){
-                                              if (!is.null(x) && length(x) > 0 && dir.exists(x)){
-                                                list.dirs(x, recursive = F, full.names = F)
-                                              } else {
-                                                NULL
-                                              }
-                                            })
+  auto_udpate <- reactiveTimer(1000)
+  list.available.dirs <- reactiveVal(NULL)
+  
+  observe({
+    get_save_dir <- get_save_dir()
+    req(get_save_dir)
+    auto_udpate()
+    if (!is.null(get_save_dir) && length(get_save_dir) > 0 && dir.exists(get_save_dir)){
+      val <- list.dirs(get_save_dir, recursive = T, full.names = F)
+    } else {
+      val <- NULL
+    }
+    if(!isTRUE(all.equal(val, isolate(list.available.dirs())))){
+      list.available.dirs(val)
+    }
+  })
   
   
   current_dir <- reactiveVal(NULL)
@@ -276,7 +284,7 @@ shiny_drive_server <- function(input,
     removeModal()
     
     shiny::showModal(shiny::modalDialog(
-      title = div(file_translate[file_translate$ID == 5, get_lan()], style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
+      title = div(paste0(ifelse(input$select_file_dir != "/", paste0(input$select_file_dir, " : "), ""), file_translate[file_translate$ID == 5, get_lan()]), style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
       shiny::textInput(ns("file_dir_desc"), file_translate[file_translate$ID == 6, get_lan()], value="", width = "100%"),
       footer = fluidRow(
         column(6, div(actionButton(ns("create_file_dir_ok"), file_translate[file_translate$ID == 2, get_lan()]), align = "center")),
@@ -299,8 +307,8 @@ shiny_drive_server <- function(input,
       removeModal()
       
       shiny::showModal(shiny::modalDialog(
-        title = div(file_translate[file_translate$ID == 39, get_lan()], style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
-        selectInput(ns("select_file_dir_rename"), file_translate[file_translate$ID == 1, get_lan()], choices = list_dirs),
+        title = div(paste0(ifelse(input$select_file_dir != "/", paste0(input$select_file_dir, " : "), ""), file_translate[file_translate$ID == 39, get_lan()]), style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
+        # selectInput(ns("select_file_dir_rename"), file_translate[file_translate$ID == 1, get_lan()], choices = list_dirs),
         shiny::textInput(ns("new_file_dir_desc"),  file_translate[file_translate$ID == 40, get_lan()],
                          value = "", width = "100%"),
         footer = fluidRow(
@@ -336,7 +344,7 @@ shiny_drive_server <- function(input,
       removeModal()
       
       shiny::showModal(shiny::modalDialog(
-        title = div(file_translate[file_translate$ID == 39, get_lan()], style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
+        title = div(paste0(ifelse(input$select_file_dir != "/", paste0(input$select_file_dir, " : "), ""), file_translate[file_translate$ID == 39, get_lan()]), style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
         shiny::textInput(ns("new_file_dir_desc"), file_translate[file_translate$ID == 40, get_lan()],
                          value = "", width = "100%"),
         easyClose = FALSE,
@@ -346,29 +354,35 @@ shiny_drive_server <- function(input,
           )
         )
       ))
-    } else if (input$new_file_dir_desc %in% list_dirs){
-      removeModal()
-      
-      shiny::showModal(shiny::modalDialog(
-        title = div(file_translate[file_translate$ID == 39, get_lan()], style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
-        shiny::textInput(ns("new_file_dir_desc"), file_translate[file_translate$ID == 8, get_lan()],
-                         value = "", width = "100%"),
-        easyClose = FALSE,
-        footer = fluidRow(
-          column(6, div(actionButton(ns("rename_file_dir_selected"),  file_translate[file_translate$ID == 3, get_lan()]), align = "center")),
-          column(6, div(modalButton(file_translate[file_translate$ID == 7, get_lan()]), align = "center")
-          )
-        )
-      ))
     } else {
-      file.rename(from = file.path(save_dir, input$select_file_dir_rename),
-                  to = file.path(save_dir, input$new_file_dir_desc))
-      removeModal()
-      shiny::showModal(shiny::modalDialog(
-        easyClose = TRUE,
-        footer = NULL,
-        file_translate[file_translate$ID == 41, get_lan()]
-      ))
+
+      new_dir <- strsplit(input$select_file_dir, "/")[[1]]
+      new_dir <- file.path(paste0(new_dir[-length(new_dir)], collapse = "/"), input$new_file_dir_desc)
+      
+      if (new_dir %in% list_dirs){
+        removeModal()
+        
+        shiny::showModal(shiny::modalDialog(
+          title = div(paste0(ifelse(input$select_file_dir != "/", paste0(input$select_file_dir, " : "), ""), file_translate[file_translate$ID == 39, get_lan()]), style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
+          shiny::textInput(ns("new_file_dir_desc"), file_translate[file_translate$ID == 8, get_lan()],
+                           value = "", width = "100%"),
+          easyClose = FALSE,
+          footer = fluidRow(
+            column(6, div(actionButton(ns("rename_file_dir_selected"),  file_translate[file_translate$ID == 3, get_lan()]), align = "center")),
+            column(6, div(modalButton(file_translate[file_translate$ID == 7, get_lan()]), align = "center")
+            )
+          )
+        ))
+      } else {
+        file.rename(from = file.path(save_dir, input$select_file_dir),
+                    to = file.path(save_dir, new_dir))
+        removeModal()
+        shiny::showModal(shiny::modalDialog(
+          easyClose = TRUE,
+          footer = NULL,
+          file_translate[file_translate$ID == 41, get_lan()]
+        ))
+      }
     }
   }, ignoreInit = TRUE)
   
@@ -418,9 +432,8 @@ shiny_drive_server <- function(input,
     file_translate <- get_file_translate()
     
     if (!is.null(input$file_dir_desc) && input$file_dir_desc == ""){
-      # Donner un description au file
       shiny::showModal(shiny::modalDialog(
-        title = div(file_translate[file_translate$ID == 5, get_lan()], style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
+        title = div(paste0(ifelse(input$select_file_dir != "/", paste0(input$select_file_dir, " : "), ""), file_translate[file_translate$ID == 5, get_lan()]), style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
         shiny::textInput(ns("file_dir_desc"), file_translate[file_translate$ID == 6, get_lan()], value="", width = "100%"),
         footer = fluidRow(
           column(6, div(actionButton(ns("create_file_dir_ok"), file_translate[file_translate$ID == 2, get_lan()]), align = "center")),
@@ -430,7 +443,14 @@ shiny_drive_server <- function(input,
         easyClose = FALSE
       ))
     } else {
-      if (input$file_dir_desc %in% list.available.dirs()){
+      
+      if(isolate(input$select_file_dir) != "/"){
+        new_dir <- gsub("^/", "", file.path(isolate(input$select_file_dir), input$file_dir_desc))
+      } else {
+        new_dir <- input$file_dir_desc
+      }
+      
+      if (new_dir %in% list.available.dirs()){
         removeModal()
         
         shiny::showModal(shiny::modalDialog(
@@ -444,11 +464,11 @@ shiny_drive_server <- function(input,
           easyClose = FALSE
         ))
       } else {
-        fold_path <- file.path(save_dir, input$file_dir_desc)
+        fold_path <- file.path(save_dir, new_dir)
         create_test <- dir.create(fold_path)
         if (create_test){
           file.create(file.path(fold_path, isolate(get_yml())))
-          current_dir(input$file_dir_desc)
+          current_dir(new_dir)
           removeModal()
           shiny::showModal(shiny::modalDialog(
             easyClose = TRUE,
@@ -874,7 +894,7 @@ shiny_drive_server <- function(input,
       NULL
     })
     
-}, ignoreInit = TRUE)
+  }, ignoreInit = TRUE)
   # End edit file
   
   
@@ -1108,4 +1128,4 @@ shiny_drive_server <- function(input,
       tryCatch({file.remove(tmp_fp)}, error = function(e) NULL, warning = function(e) NULL)
     }
   )
-  }
+}
