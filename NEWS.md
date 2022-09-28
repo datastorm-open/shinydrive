@@ -1,3 +1,7 @@
+# shinydrive 0.1.3
+
+* Update maintener e-mail
+
 # shinydrive 0.1.2
 
 * Add remove directory button
