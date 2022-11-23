@@ -71,6 +71,7 @@ shiny_drive_ui <- function(id){
 #' @param datatable_options \code{list/reactive}.  \code{DT::datatable} options argument.
 #' @param yml \code{characte/reactiver} yaml configuration file name.
 #' @param date_time_format \code{character} DateTime format.
+#' @param decreasing \code{logical} Order table output on date.
 #' 
 #' @return Shiny module without return value.
 #' 
@@ -117,7 +118,8 @@ shiny_drive_server <- function(input,
                                                          check.names=FALSE), 
                                datatable_options = list(), 
                                yml = "files_desc.yaml", 
-                               date_time_format = "%Y%m%d_%H%M%s") {
+                               date_time_format = "%Y%m%d_%H%M%s",
+                               decreasing = TRUE) {
   
   ns <- session$ns
   
@@ -166,6 +168,11 @@ shiny_drive_server <- function(input,
     get_datatable_options <- shiny::reactive(datatable_options)
   } else {
     get_datatable_options <- datatable_options
+  }
+  if (! shiny::is.reactive(decreasing)) {
+    get_decreasing <- shiny::reactive(decreasing)
+  } else {
+    get_decreasing <- decreasing
   }
   
   output$msg_no_file <- renderUI({
@@ -657,6 +664,8 @@ shiny_drive_server <- function(input,
     file_translate <- get_file_translate()
     
     if(nrow(dt) == 0) return(NULL)
+    
+    dt <- dt[order(dt$date_time, decreasing = get_decreasing()), ]
     
     if(!is.null(get_admin_user) && get_admin_user()){
       dt$Edit <- input_btns(ns("edit_file"), uniquenames(), file_translate[file_translate$ID == 16, get_lan()], icon("pencil-square-o"), status = "primary")
