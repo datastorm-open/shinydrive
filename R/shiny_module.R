@@ -665,8 +665,6 @@ shiny_drive_server <- function(input,
     
     if(nrow(dt) == 0) return(NULL)
     
-    dt <- dt[order(dt$date_time, decreasing = get_decreasing()), ]
-    
     if(!is.null(get_admin_user) && get_admin_user()){
       dt$Edit <- input_btns(ns("edit_file"), uniquenames(), file_translate[file_translate$ID == 16, get_lan()], icon("pencil-square-o"), status = "primary")
       dt$Remove <- input_btns(ns("remove_file"), uniquenames(), file_translate[file_translate$ID == 17, get_lan()], icon("trash-o"), status = "danger")
@@ -681,6 +679,8 @@ shiny_drive_server <- function(input,
     file_translate[[get_lan()]] <- as.character(file_translate[[get_lan()]])
     
     dt$id <- NULL
+    
+    dt <- dt[order(dt$date_time, decreasing = get_decreasing()), ]
     
     if(get_admin_user()){
       if(ncol(dt) < 8){return(NULL)}
