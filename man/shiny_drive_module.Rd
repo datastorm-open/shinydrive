@@ -21,7 +21,9 @@ shiny_drive_server(
     "shinydrive"), sep = ";", encoding = "UTF-8", check.names = FALSE),
   datatable_options = list(),
   yml = "files_desc.yaml",
-  date_time_format = "\%Y\%m\%d_\%H\%M\%s"
+  date_time_format = "\%Y\%m\%d_\%H\%M\%s",
+  decreasing = TRUE,
+  intervalMillis = 5000
 )
 }
 \arguments{
@@ -50,6 +52,10 @@ shiny_drive_server(
 \item{yml}{\code{characte/reactiver} yaml configuration file name.}
 
 \item{date_time_format}{\code{character} DateTime format.}
+
+\item{decreasing}{\code{logical} Order table output on date.}
+
+\item{intervalMillis}{\code{integer}. In case of "reactive" time betweens calls looking of files changes}
 }
 \value{
 Shiny module without return value.

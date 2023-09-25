@@ -72,6 +72,7 @@ shiny_drive_ui <- function(id){
 #' @param yml \code{characte/reactiver} yaml configuration file name.
 #' @param date_time_format \code{character} DateTime format.
 #' @param decreasing \code{logical} Order table output on date.
+#' @param intervalMillis \code{integer}. In case of "reactive" time betweens calls looking of files changes
 #' 
 #' @return Shiny module without return value.
 #' 
@@ -119,7 +120,8 @@ shiny_drive_server <- function(input,
                                datatable_options = list(), 
                                yml = "files_desc.yaml", 
                                date_time_format = "%Y%m%d_%H%M%s",
-                               decreasing = TRUE) {
+                               decreasing = TRUE, 
+                               intervalMillis = 5000) {
   
   ns <- session$ns
   
@@ -232,7 +234,7 @@ shiny_drive_server <- function(input,
     )
   })
   # gestion dossier
-  auto_udpate <- reactiveTimer(1000)
+  auto_udpate <- reactiveTimer(intervalMillis)
   list.available.dirs <- reactiveVal(NULL)
   
   observe({
@@ -510,20 +512,29 @@ shiny_drive_server <- function(input,
     }
   })
   
-  # End gestion dossier
-  
-  all_files <- reactiveFileReader(1000, session, req_yml, function(x){
-    if (!is.null(x) && length(x) > 0 && file.exists(x)){
-      get_yaml_info(x, 
-                    recorded_name = TRUE,
-                    date_time_format = date_time_format, 
-                    add_img = TRUE, 
-                    img_size = 30
-      )
-    } else {
-      NULL
-    }})
-  
+  all_files <- reactivePoll(intervalMillis, session,
+               checkFunc = function() {
+                 x <- isolate(req_yml())
+                 if (!is.null(x) && length(x) > 0 && file.exists(x)){
+                   info <- file.info(x)
+                   info$atime <- NULL
+                   info
+                 } else {
+                   ""
+                 }
+               },
+               # This function returns the content of log_file
+               valueFunc = function() {
+                 x <- isolate(req_yml())
+                 get_yaml_info(x, 
+                               recorded_name = TRUE,
+                               date_time_format = date_time_format, 
+                               add_img = TRUE, 
+                               img_size = 30
+                 )
+               }
+  )
+
   output$have_files <- reactive({
     !is.null(all_files()) && nrow(all_files()) > 0
   })
