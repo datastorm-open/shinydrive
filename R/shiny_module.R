@@ -530,7 +530,8 @@ shiny_drive_server <- function(input,
                                recorded_name = TRUE,
                                date_time_format = date_time_format, 
                                add_img = TRUE, 
-                               img_size = 30
+                               img_size = 30,
+                               format_size = TRUE
                  )
                }
   )
@@ -670,6 +671,9 @@ shiny_drive_server <- function(input,
     req(all_files())
     
     dt <- all_files()
+    
+
+    
     dt$recorded_name <- NULL
     
     file_translate <- get_file_translate()
@@ -677,8 +681,8 @@ shiny_drive_server <- function(input,
     if(nrow(dt) == 0) return(NULL)
     
     if(!is.null(get_admin_user) && get_admin_user()){
-      dt$Edit <- input_btns(ns("edit_file"), uniquenames(), file_translate[file_translate$ID == 16, get_lan()], icon("pencil-square-o"), status = "primary")
-      dt$Remove <- input_btns(ns("remove_file"), uniquenames(), file_translate[file_translate$ID == 17, get_lan()], icon("trash-o"), status = "danger")
+      dt$Edit <- input_btns(ns("edit_file"), uniquenames(), file_translate[file_translate$ID == 16, get_lan()], icon("edit"), status = "primary")
+      dt$Remove <- input_btns(ns("remove_file"), uniquenames(), file_translate[file_translate$ID == 17, get_lan()], icon("trash"), status = "danger")
     }
     
     dt$Download <- input_btns(ns("download_file"), uniquenames(), file_translate[file_translate$ID == 18, get_lan()], icon("download"), status = "success")
@@ -691,13 +695,20 @@ shiny_drive_server <- function(input,
     
     dt$id <- NULL
     
+
+    
+    
     dt <- dt[order(dt$date_time, decreasing = get_decreasing()), ]
     
+    
+
+    
     if(get_admin_user()){
-      if(ncol(dt) < 8){return(NULL)}
+      if(ncol(dt) < 9){return(NULL)}
       names(dt) <- c(file_translate[file_translate$ID == 46, get_lan()],
                      file_translate[file_translate$ID == 19, get_lan()],
                      file_translate[file_translate$ID == 20, get_lan()],
+                     file_translate[file_translate$ID == 48, get_lan()],
                      file_translate[file_translate$ID == 21, get_lan()],
                      file_translate[file_translate$ID == 22, get_lan()],
                      file_translate[file_translate$ID == 23, get_lan()],
@@ -707,11 +718,12 @@ shiny_drive_server <- function(input,
       
       target_wd_cols <- c(0, (ncol(dt)-4):(ncol(dt)-1))
     }else{
-      if(ncol(dt) < 6){return(NULL)}
+      if(ncol(dt) < 7){return(NULL)}
       
       names(dt) <- c( file_translate[file_translate$ID == 46, get_lan()],
                       file_translate[file_translate$ID == 19, get_lan()],
                       file_translate[file_translate$ID == 20, get_lan()],
+                      file_translate[file_translate$ID == 48, get_lan()],
                       file_translate[file_translate$ID == 21, get_lan()],
                       file_translate[file_translate$ID == 24, get_lan()],
                       file_translate[file_translate$ID == 25, get_lan()])
@@ -725,7 +737,9 @@ shiny_drive_server <- function(input,
       scrollX = TRUE,
       columnDefs = list(
         list(className =  "dt-head-center", "targets" = "_all"),
-        list(width = "50px", targets = target_wd_cols)
+        list(width = "50px", targets = target_wd_cols),
+        list(type = "string", targets = 3),  
+        list(orderable = FALSE, targets = 3) 
       )
     )
     
@@ -735,6 +749,9 @@ shiny_drive_server <- function(input,
         default_options[[n]] <- custom_options[[n]]
       }
     }
+    
+
+    
     
     DT::datatable(
       data = dt,

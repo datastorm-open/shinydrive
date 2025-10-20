@@ -1,4 +1,4 @@
-ID;FR;EN;CN
+﻿ID;FR;EN;CN
 1;Sous-dossiers : ;Sub-folders :;子文件夹
 2;Créer;Create;创建
 3;Renommer;Rename;重命名
@@ -46,3 +46,4 @@ ID;FR;EN;CN
 45;Aucun fichier disponible;Empty directory;空目录
 46;Type;Type;类型
 47;Supprimer;Remove;删除
+48;Taille;Size;大小

@@ -80,16 +80,18 @@ add_file_in_dir <- function(file,
                             date_time_format = "%Y%m%d_%H%M%s"){
 
   if(!dir.exists(dir)) stop("Directory '", dir, "' not found")
+  if(!file.exists(file)) stop("File '", file, "' not found")
 
   date_time <- format(Sys.time(), format = date_time_format)
-  
+  file_size <- file.info(file)$size
   # To folder
   check_copy <- file.copy(file, file.path(dir, paste0(name, "_", date_time, ".", tools::file_ext(file))))
 
   if(isTRUE(check_copy)){
     .add_file_in_yaml(yml, name = name, datetime = date_time,
                      extension = tools::file_ext(file),
-                     description = description)
+                     description = description,
+                     size = file_size)
   }
   check_copy
 }
@@ -98,7 +100,8 @@ add_file_in_dir <- function(file,
                              name,
                              datetime,
                              extension,
-                             description){
+                             description,
+                             size){
   # Read yaml
   if(!file.exists(yml)){
     file.create(yml)
@@ -115,7 +118,8 @@ add_file_in_dir <- function(file,
     list(name = name,
          date_upload = datetime,
          extension = extension,
-         description = description
+         description = description,
+         size = size
     )
   )
   names(add_list)[1] <- id
@@ -148,6 +152,9 @@ edit_file_in_dir <- function(id,
     return(FALSE)
   } else {
     if(!is.null(file)){
+      
+      size <- file.info(file)$size
+      
       if(is.null(name)){
         write_name <- yml_info[[id]]$name
       } else {
@@ -168,6 +175,10 @@ edit_file_in_dir <- function(id,
         old_path <- file.path(dir, paste0(yml_info[[id]]$name, "_", yml_info[[id]]$date_upload, ".", yml_info[[id]]$extension))
         new_path <- file.path(dir, paste0(name, "_", yml_info[[id]]$date_upload, ".", yml_info[[id]]$extension))
         file.rename(old_path, new_path)
+        
+        if(file.exists(new_path)){
+          size <- file.info(new_path)$size
+          }
       }
     }
 
@@ -176,6 +187,7 @@ edit_file_in_dir <- function(id,
     if(!is.null(date_time)) mod_list$date_upload <- date_time
     if(!is.null(extension)) mod_list$extension <- extension
     if(!is.null(description)) mod_list$description <- description
+    if(!is.null(size)) mod_list$size <- size
 
     yml_info[[id]] <- mod_list
     yaml::write_yaml(yml_info, yml)
@@ -223,7 +235,8 @@ get_yaml_info <- function(yml,
                           recorded_name = TRUE,
                           date_time_format = "%Y%m%d_%H%M%s", 
                           add_img = FALSE, 
-                          img_size = 30){
+                          img_size = 30,
+                          format_size = TRUE){
   
   if(!is.null(yml) && file.exists(yml)){
     yml_info <- yaml::read_yaml(yml)
@@ -241,6 +254,17 @@ get_yaml_info <- function(yml,
     
     description <- .gyc(yml_info, "description")
     
+    sizes <- .gyc(yml_info, "size")
+    if(format_size){
+      sizes <- sapply(sizes, function(s) {
+        if(is.null(s) || is.na(s)) {
+          return("0 B")
+        }
+        .format_file_size(s)
+      })
+    }
+    
+    
     file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = F)
     full_file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = T)
     ind_unknown <- full_file_ext[grep("unknown.png$", full_file_ext)]
@@ -255,6 +279,7 @@ get_yaml_info <- function(yml,
     
     dt <- data.frame(id = id, type = unname(png_extension), 
                      name = names, date_time = date_time, 
+                     size = sizes,
                      description = description, stringsAsFactors = FALSE)
     
     if(!add_img) dt$type <- NULL
@@ -264,4 +289,27 @@ get_yaml_info <- function(yml,
     dt <- NULL
   }
   dt
+}
+
+
+.format_file_size <- function(bytes) {
+  if (is.na(bytes) || is.null(bytes) || bytes == 0) return("0 B")
+  
+  units <- c("B", "KB", "MB", "GB", "TB")
+  power <- floor(log(bytes, 1024))
+  power <- min(power, length(units) - 1)
+  
+  size <- bytes / (1024^power)
+  
+ 
+  if (size < 10) {
+    decimals <- 2  
+  } else if (size < 100) {
+    decimals <- 1  
+  } else {
+    decimals <- 0  
+  }
+  
+  # IMPORTANT : paste0 au lieu de paste pour éviter les problèmes d'espace
+  paste0(round(size, decimals), " ", units[power + 1])
 }
