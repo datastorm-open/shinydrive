@@ -254,16 +254,30 @@ get_yaml_info <- function(yml,
     
     description <- .gyc(yml_info, "description")
     
-    sizes <- .gyc(yml_info, "size")
+    # Récupérer les tailles avec gestion des valeurs manquantes
+    sizes <- sapply(yml_info, function(x) {
+      if(is.null(x$size)) {
+        return(NA)
+      } else {
+        return(x$size)
+      }
+    })
+    
+    # Formater les tailles
     if(format_size){
       sizes <- sapply(sizes, function(s) {
-        if(is.null(s) || is.na(s)) {
-          return("0 B")
+        # Vérifier si la valeur est NULL, NA, ou manquante
+        if(is.null(s) || is.na(s) || length(s) == 0) {
+          return("N/A")
         }
         .format_file_size(s)
       })
+    } else {
+      # Si pas de formatage, remplacer les NA par "N/A"
+      sizes <- sapply(sizes, function(s) {
+        if(is.null(s) || is.na(s)) "N/A" else as.character(s)
+      })
     }
-    
     
     file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = F)
     full_file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = T)
@@ -290,7 +304,6 @@ get_yaml_info <- function(yml,
   }
   dt
 }
-
 
 .format_file_size <- function(bytes) {
   if (is.na(bytes) || is.null(bytes) || bytes == 0) return("0 B")
