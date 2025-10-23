@@ -242,6 +242,7 @@ get_yaml_info <- function(yml,
     yml_info <- yaml::read_yaml(yml)
     if(is.null(yml_info)) return(NULL)
     if(length(yml_info) == 0) return(NULL)
+    
     id <- names(yml_info)
     extension <- .gyc(yml_info, "extension")
     names <- paste0(.gyc(yml_info, "name"), ".", extension)
@@ -254,29 +255,61 @@ get_yaml_info <- function(yml,
     
     description <- .gyc(yml_info, "description")
     
-    # Récupérer les tailles avec gestion des valeurs manquantes
-    sizes <- sapply(yml_info, function(x) {
-      if(is.null(x$size)) {
-        return(NA)
-      } else {
-        return(x$size)
-      }
+    # CORRECTION : Récupérer les tailles en gardant les positions
+    sizes <- tryCatch({
+      sapply(yml_info, function(x) {
+        if(is.null(x$size)) {
+          return(NA)
+        } else {
+          return(x$size)
+        }
+      })
+    }, error = function(e) {
+      warning(paste("Error extracting sizes:", e$message))
+      rep(NA, length(yml_info))
     })
+    
+    # DÉBOGAGE
+    print(paste("Nombre d'éléments - id:", length(id), "names:", length(names), 
+                "date_time:", length(date_time), "sizes:", length(sizes), 
+                "description:", length(description)))
+    
+    # Vérification de longueur de sizes
+    if(length(sizes) == 0) {
+      warning("sizes vector is empty, filling with NA")
+      sizes <- rep(NA, length(id))
+    }
     
     # Formater les tailles
     if(format_size){
-      sizes <- sapply(sizes, function(s) {
-        # Vérifier si la valeur est NULL, NA, ou manquante
-        if(is.null(s) || is.na(s) || length(s) == 0) {
-          return("N/A")
-        }
-        .format_file_size(s)
+      sizes <- tryCatch({
+        sapply(sizes, function(s) {
+          if(is.null(s) || is.na(s) || length(s) == 0) {
+            return("N/A")
+          }
+          .format_file_size(s)
+        })
+      }, error = function(e) {
+        warning(paste("Error formatting sizes:", e$message))
+        rep("N/A", length(id))
       })
     } else {
-      # Si pas de formatage, remplacer les NA par "N/A"
       sizes <- sapply(sizes, function(s) {
         if(is.null(s) || is.na(s)) "N/A" else as.character(s)
       })
+    }
+    
+    # Vérification finale des longueurs
+    print(paste("Après formatage - sizes:", length(sizes)))
+    
+    if(length(sizes) != length(id)) {
+      warning(paste("Size mismatch: id has", length(id), "elements but sizes has", length(sizes)))
+      # Ajuster la longueur
+      if(length(sizes) < length(id)) {
+        sizes <- c(sizes, rep("N/A", length(id) - length(sizes)))
+      } else {
+        sizes <- sizes[1:length(id)]
+      }
     }
     
     file_ext <- list.files(system.file("img/png", package = "shinydrive"), pattern = ".png", full.names = F)
@@ -291,10 +324,13 @@ get_yaml_info <- function(yml,
       }
     })
     
-    dt <- data.frame(id = id, type = unname(png_extension), 
-                     name = names, date_time = date_time, 
+    dt <- data.frame(id = id, 
+                     type = unname(png_extension), 
+                     name = names, 
+                     date_time = date_time, 
                      size = sizes,
-                     description = description, stringsAsFactors = FALSE)
+                     description = description, 
+                     stringsAsFactors = FALSE)
     
     if(!add_img) dt$type <- NULL
     if(recorded_name) dt$recorded_name <- recorded_names
@@ -323,6 +359,107 @@ get_yaml_info <- function(yml,
     decimals <- 0  
   }
   
-  # IMPORTANT : paste0 au lieu de paste pour éviter les problèmes d'espace
+
   paste0(round(size, decimals), " ", units[power + 1])
+}
+
+
+
+create_shinydrive_config_recursive <- function(base_dir,
+                                               config_file = "files_desc.yaml",
+                                               file_patterns = NULL) {
+  
+  if (!dir.exists(base_dir)) {
+    stop(paste("Le dossier", base_dir, "n'existe pas."))
+  }
+  
+  message(paste("\n=== Scan récursif de:", base_dir, "==="))
+  
+
+  all_dirs <- list.dirs(base_dir, recursive = TRUE, full.names = TRUE)
+  
+  processed_count <- 0
+  
+  for (dir_path in all_dirs) {
+    
+    dir_name <- basename(dir_path)
+    
+    
+    files <- list.files(
+      path = dir_path,
+      pattern = file_patterns,
+      recursive = FALSE,  # Important : seulement ce niveau
+      full.names = TRUE
+    )
+    
+
+    files <- files[basename(files) != config_file]
+    
+    if (length(files) == 0) {
+      next
+    }
+    
+    message(paste("\n📁", gsub(paste0("^", base_dir, "/?"), "", dir_path)))
+    message(paste("  →", length(files), "fichier(s) trouvé(s)"))
+    
+    config_path <- file.path(dir_path, config_file)
+    
+
+    existing_files <- character(0)
+    if (file.exists(config_path)) {
+      tryCatch({
+        yml_info <- yaml::read_yaml(config_path)
+        if (!is.null(yml_info) && length(yml_info) > 0) {
+          existing_files <- sapply(yml_info, function(x) x$name)
+        }
+      }, error = function(e) {})
+    }
+    
+    files_added <- 0
+    
+
+    for (file_path in files) {
+      
+      file_name <- basename(file_path)
+      
+      if (!file.exists(file_path)) next
+      
+      file_info <- file.info(file_path)
+      nom_sans_ext <- tools::file_path_sans_ext(file_name)
+      extension <- tools::file_ext(file_name)
+      date_fichier <- format(file_info$mtime, "%Y%m%d_%H%M%S")
+      description <- gsub("_", " ", nom_sans_ext)
+      size <- file_info$size
+      
+      if (nom_sans_ext %in% existing_files) {
+        next
+      }
+      
+      tryCatch({
+        shinydrive:::.add_file_in_yaml(
+          yml = config_path,
+          name = nom_sans_ext,
+          datetime = date_fichier,
+          extension = extension,
+          description = description,
+          size = size
+        )
+        
+        files_added <- files_added + 1
+        
+      }, error = function(e) {
+        warning(paste("  ✗ Erreur:", e$message))
+      })
+    }
+    
+    if (files_added > 0) {
+      message(paste("  ✓", files_added, "fichier(s) ajouté(s)"))
+      processed_count <- processed_count + 1
+    }
+  }
+  
+  message(paste("\n=== Terminé ==="))
+  message(paste("✓", processed_count, "dossier(s) avec YAML créés"))
+  
+  return(invisible(processed_count))
 }
