@@ -77,7 +77,7 @@ add_file_in_dir <- function(file,
                             yml,
                             name = tools::file_path_sans_ext(basename(file)),
                             description = "", 
-                            date_time_format = "%Y%m%d_%H%M%s"){
+                            date_time_format = "%Y%m%d_%H%M%S"){
 
   if(!dir.exists(dir)) stop("Directory '", dir, "' not found")
   if(!file.exists(file)) stop("File '", file, "' not found")
@@ -137,7 +137,7 @@ edit_file_in_dir <- function(id,
                             name = NULL,
                             description = NULL,
                             file = NULL, 
-                            date_time_format = "%Y%m%d_%H%M%s"){
+                            date_time_format = "%Y%m%d_%H%M%S"){
 
   if(!dir.exists(dir)) stop("Directory '", dir, "' not found")
   if(!file.exists(yml)) stop("YAML '", yml, "' not found")
@@ -233,7 +233,7 @@ suppress_file_in_dir <- function(id,
 #' @export
 get_yaml_info <- function(yml, 
                           recorded_name = TRUE,
-                          date_time_format = "%Y%m%d_%H%M%s", 
+                          date_time_format = "%Y%m%d_%H%M%S", 
                           add_img = FALSE, 
                           img_size = 30,
                           format_size = TRUE){
