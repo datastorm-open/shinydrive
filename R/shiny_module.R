@@ -9,7 +9,21 @@ shiny_drive_ui <- function(id){
   ns <- NS(id)
   tagList(
     singleton(tags$head(
-      tags$script(src = "shinydrive/shiny_utils_sfm.js")
+      tags$script(src = "shinydrive/shiny_utils_sfm.js"),
+      tags$script("
+        // Handler pour sélectionner/désélectionner toutes les checkboxes
+        Shiny.addCustomMessageHandler('selectAllCheckboxes', function(message) {
+          // Trouver toutes les checkboxes dans le DataTable
+          var checkboxes = $('table.dataTable input[type=\"checkbox\"]');
+          
+          // Mettre à jour toutes les checkboxes
+          checkboxes.each(function() {
+            $(this).prop('checked', message.select);
+            // Déclencher l'événement change pour que Shiny soit notifié
+            $(this).trigger('change');
+          });
+        });
+      ")
     )),
     
     # fix fontAwesome init loading...
@@ -43,6 +57,21 @@ shiny_drive_ui <- function(id){
     ),
     conditionalPanel("output.have_files", ns = ns,
                      DT::DTOutput(ns("dt")),
+                     fluidRow(
+                       column(12,
+                              div(style = "margin-top: 10px; margin-bottom: 10px;",
+                                  actionButton(ns("select_all_files"), 
+                                               "",  # Le texte sera défini dynamiquement
+                                               icon = icon("check-square"), 
+                                               class = "btn-success pull-right",
+                                               style = "margin-left: 5px;"),
+                                  actionButton(ns("deselect_all_files"), 
+                                               "",  # Le texte sera défini dynamiquement
+                                               icon = icon("square"), 
+                                               class = "btn-default pull-right")
+                              )
+                       )
+                     ),
                      uiOutput(ns("supress_all"))
     ),
     conditionalPanel("output.have_files === false", ns = ns,
@@ -364,7 +393,7 @@ shiny_drive_server <- function(input,
         )
       ))
     } else {
-
+      
       new_dir <- strsplit(input$select_file_dir, "/")[[1]]
       new_dir <- file.path(paste0(new_dir[-length(new_dir)], collapse = "/"), input$new_file_dir_desc)
       
@@ -513,29 +542,29 @@ shiny_drive_server <- function(input,
   })
   
   all_files <- reactivePoll(intervalMillis, session,
-               checkFunc = function() {
-                 x <- isolate(req_yml())
-                 if (!is.null(x) && length(x) > 0 && file.exists(x)){
-                   info <- file.info(x)
-                   info$atime <- NULL
-                   info
-                 } else {
-                   ""
-                 }
-               },
-               # This function returns the content of log_file
-               valueFunc = function() {
-                 x <- isolate(req_yml())
-                 get_yaml_info(x, 
-                               recorded_name = TRUE,
-                               date_time_format = date_time_format, 
-                               add_img = TRUE, 
-                               img_size = 30,
-                               format_size = TRUE
-                 )
-               }
+                            checkFunc = function() {
+                              x <- isolate(req_yml())
+                              if (!is.null(x) && length(x) > 0 && file.exists(x)){
+                                info <- file.info(x)
+                                info$atime <- NULL
+                                info
+                              } else {
+                                ""
+                              }
+                            },
+                            # This function returns the content of log_file
+                            valueFunc = function() {
+                              x <- isolate(req_yml())
+                              get_yaml_info(x, 
+                                            recorded_name = TRUE,
+                                            date_time_format = date_time_format, 
+                                            add_img = TRUE, 
+                                            img_size = 30,
+                                            format_size = TRUE
+                              )
+                            }
   )
-
+  
   output$have_files <- reactive({
     !is.null(all_files()) && nrow(all_files()) > 0
   })
@@ -672,7 +701,7 @@ shiny_drive_server <- function(input,
     
     dt <- all_files()
     
-
+    
     
     dt$recorded_name <- NULL
     
@@ -687,7 +716,7 @@ shiny_drive_server <- function(input,
       } else {
         dt$Edit <- input_btns(ns("edit_file"), uniquenames(), file_translate[file_translate$ID == 16, get_lan()], icon("pencil-square-o"), status = "primary")
         dt$Remove <- input_btns(ns("remove_file"), uniquenames(), file_translate[file_translate$ID == 17, get_lan()], icon("trash-o"), status = "danger")
-
+        
       }
     }
     
@@ -701,13 +730,13 @@ shiny_drive_server <- function(input,
     
     dt$id <- NULL
     
-
+    
     
     
     dt <- dt[order(dt$date_time, decreasing = get_decreasing()), ]
     
     
-
+    
     
     if(get_admin_user()){
       if(ncol(dt) < 9){return(NULL)}
@@ -756,7 +785,7 @@ shiny_drive_server <- function(input,
       }
     }
     
-
+    
     
     
     DT::datatable(
@@ -1005,6 +1034,56 @@ shiny_drive_server <- function(input,
   
   # Remove multiple
   r_selected_files <- callModule(module = input_checkbox, id = "remove_mult_files")
+  
+  # Mettre à jour les labels des boutons selon la langue
+  observe({
+    file_translate <- get_file_translate()
+    req(file_translate)
+    
+    # ID 50 pour "Tout sélectionner" et ID 51 pour "Tout désélectionner"
+    # Si ces IDs n'existent pas encore, utilisez des valeurs par défaut
+    select_all_text <- tryCatch({
+      file_translate[file_translate$ID == 50, get_lan()]
+    }, error = function(e) {
+      if(get_lan() == "FR") "Tout sélectionner" 
+      else if(get_lan() == "CN") "全选" 
+      else "Select all"
+    })
+    
+    deselect_all_text <- tryCatch({
+      file_translate[file_translate$ID == 51, get_lan()]
+    }, error = function(e) {
+      if(get_lan() == "FR") "Tout désélectionner" 
+      else if(get_lan() == "CN") "取消全选" 
+      else "Deselect all"
+    })
+    
+    updateActionButton(session, "select_all_files", label = select_all_text)
+    updateActionButton(session, "deselect_all_files", label = deselect_all_text)
+  })
+  
+  # Bouton "Tout sélectionner" - Version avec JavaScript
+  observeEvent(input$select_all_files, {
+    req(all_files())
+    
+    # Utiliser JavaScript pour cocher toutes les checkboxes du DataTable
+    session$sendCustomMessage(
+      type = 'selectAllCheckboxes',
+      message = list(select = TRUE)
+    )
+  })
+  
+  # Bouton "Tout désélectionner" - Version avec JavaScript
+  observeEvent(input$deselect_all_files, {
+    req(all_files())
+    
+    # Utiliser JavaScript pour décocher toutes les checkboxes du DataTable
+    session$sendCustomMessage(
+      type = 'selectAllCheckboxes',
+      message = list(select = FALSE)
+    )
+  })
+  
   
   # # # Remove all selected files
   output$supress_all <- renderUI({
