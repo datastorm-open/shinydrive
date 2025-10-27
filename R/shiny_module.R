@@ -1393,3 +1393,4 @@ shiny_drive_server <- function(input,
       tryCatch({file.remove(tmp_fp)}, error = function(e) NULL, warning = function(e) NULL)
     }
   )
+}
