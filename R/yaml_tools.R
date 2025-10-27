@@ -363,7 +363,14 @@ get_yaml_info <- function(yml,
   paste0(round(size, decimals), " ", units[power + 1])
 }
 
-
+#' Create YAML configuration files recursively
+#'
+#' @param base_dir \code{character} Base directory path
+#' @param config_file \code{character} YAML configuration file name
+#' @param file_patterns \code{character} File patterns to match
+#'
+#' @return Invisible count of processed directories
+#' @export
 
 create_shinydrive_config_recursive <- function(base_dir,
                                                config_file = "files_desc.yaml",
