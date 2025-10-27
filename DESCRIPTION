@@ -18,6 +18,7 @@ Imports:
     yaml,
     DT,
     R.utils, 
-    knitr
+    knitr,
+    zip
 Suggests: 
     testthat

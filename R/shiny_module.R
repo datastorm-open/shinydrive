@@ -31,38 +31,7 @@ shiny_drive_ui <- function(id){
       actionButton("fix FA", "fix FA", icon = icon("refresh"), style = "display:none")
     ),
     
-    
-conditionalPanel("output.have_files", ns = ns,
-                 # Nouveau: Bouton "Tout télécharger" en haut à droite
-                 fluidRow(
-                   column(12,
-                          div(style = "margin-bottom: 10px;",
-                              actionButton(ns("download_all_files_top"), 
-                                           "",  # Le texte sera défini dynamiquement
-                                           icon = icon("download"), 
-                                           class = "btn-primary pull-right")
-                          )
-                   )
-                 ),
-                 DT::DTOutput(ns("dt")),
-                 fluidRow(
-                   column(12,
-                          div(style = "margin-top: 10px; margin-bottom: 10px;",
-                              actionButton(ns("select_all_files"), 
-                                           "",  # Le texte sera défini dynamiquement
-                                           icon = icon("check-square"), 
-                                           class = "btn-success pull-right",
-                                           style = "margin-left: 5px;"),
-                              actionButton(ns("deselect_all_files"), 
-                                           "",  # Le texte sera défini dynamiquement
-                                           icon = icon("square"), 
-                                           class = "btn-default pull-right")
-                          )
-                   )
-                 ),
-                 uiOutput(ns("supress_all"))
-),
-    
+
     conditionalPanel(condition = "output.show_dir", ns = ns,
                      fluidRow(
                        column(12,
@@ -82,11 +51,24 @@ conditionalPanel("output.have_files", ns = ns,
                        )
                      ) 
     ),
+
     # End fold management
     conditionalPanel("output.is_admin", ns = ns,
                      uiOutput(ns("admin_add_file")),
                      tags$hr()
     ),
+    br(),
+    fluidRow(
+      column(12,
+             div(style = "margin-bottom: 10px;",
+                 actionButton(ns("download_all_files_top"), 
+                              "",  # Le texte sera défini dynamiquement
+                              icon = icon("download"), 
+                              class = "btn-primary pull-right")
+             )
+      )
+    ),
+    br(),
     conditionalPanel("output.have_files", ns = ns,
                      DT::DTOutput(ns("dt")),
                      fluidRow(
@@ -1141,20 +1123,36 @@ shiny_drive_server <- function(input,
     })
   })
   
-  output$downloaded_all_files <- downloadHandler(
-    filename <- function() {
-      paste0("shinydrive_all_files_", format(Sys.time(), format = "%Y%m%d_%H%M%S"), ".zip")
+  output$downloaded_file <- downloadHandler(
+    filename = function() {
+      paste0("shinydrive_files_", format(Sys.time(), format = "%Y%m%d_%H%M%S"), ".zip")
     },
-    content <- function(file) {
-      fp <- download_all_files_rf()
+    content = function(file) {
+      fp <- download_all_file_rf()
+      
+      if(length(fp) == 0) {
+        return(NULL)
+      }
+      
       tmp_fp <- sapply(1:length(fp), function(x){
         cur_file <- unname(fp[x])
         tmp_file <- file.path(tempdir(), names(fp)[x])
-        file.copy(cur_file, to = tmp_file)
-        tmp_file <- tmp_file
+        
+        if(file.exists(cur_file)) {
+          file.copy(cur_file, to = tmp_file, overwrite = TRUE)
+          tmp_file
+        } else {
+          NULL
+        }
       })
+      
+      tmp_fp <- tmp_fp[!sapply(tmp_fp, is.null)]
+      
       removeModal()
-      zip(file, tmp_fp, flags = "-r9X -j")
+      
+      if(length(tmp_fp) > 0) {
+        zip::zip(zipfile = file, files = tmp_fp, mode = "cherry-pick")
+      }
       
       tryCatch({file.remove(tmp_fp)}, error = function(e) NULL, warning = function(e) NULL)
     }
