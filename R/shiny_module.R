@@ -31,6 +31,38 @@ shiny_drive_ui <- function(id){
       actionButton("fix FA", "fix FA", icon = icon("refresh"), style = "display:none")
     ),
     
+    
+conditionalPanel("output.have_files", ns = ns,
+                 # Nouveau: Bouton "Tout télécharger" en haut à droite
+                 fluidRow(
+                   column(12,
+                          div(style = "margin-bottom: 10px;",
+                              actionButton(ns("download_all_files_top"), 
+                                           "",  # Le texte sera défini dynamiquement
+                                           icon = icon("download"), 
+                                           class = "btn-primary pull-right")
+                          )
+                   )
+                 ),
+                 DT::DTOutput(ns("dt")),
+                 fluidRow(
+                   column(12,
+                          div(style = "margin-top: 10px; margin-bottom: 10px;",
+                              actionButton(ns("select_all_files"), 
+                                           "",  # Le texte sera défini dynamiquement
+                                           icon = icon("check-square"), 
+                                           class = "btn-success pull-right",
+                                           style = "margin-left: 5px;"),
+                              actionButton(ns("deselect_all_files"), 
+                                           "",  # Le texte sera défini dynamiquement
+                                           icon = icon("square"), 
+                                           class = "btn-default pull-right")
+                          )
+                   )
+                 ),
+                 uiOutput(ns("supress_all"))
+),
+    
     conditionalPanel(condition = "output.show_dir", ns = ns,
                      fluidRow(
                        column(12,
@@ -1058,9 +1090,75 @@ shiny_drive_server <- function(input,
       else "Deselect all"
     })
     
+    # Nouveau: label pour "Tout télécharger"
+    download_all_text <- tryCatch({
+      file_translate[file_translate$ID == 52, get_lan()]
+    }, error = function(e) {
+      if(get_lan() == "FR") "Tout télécharger" 
+      else if(get_lan() == "CN") "全部下载" 
+      else "Download all"
+    })
+    
     updateActionButton(session, "select_all_files", label = select_all_text)
     updateActionButton(session, "deselect_all_files", label = deselect_all_text)
+    updateActionButton(session, "download_all_files_top", label = download_all_text)
   })
+  
+  # Bouton "Tout télécharger" en haut
+  observeEvent(input$download_all_files_top, {
+    file_translate <- get_file_translate()
+    req(all_files())
+    
+    showModal(modalDialog(
+      title = div(file_translate[file_translate$ID == 34, get_lan()], style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
+      p(paste0(nrow(all_files()), " ", if(get_lan() == "FR") "fichier(s)" else if(get_lan() == "CN") "个文件" else "file(s)")),
+      footer = tagList(
+        modalButton(file_translate[file_translate$ID == 7, get_lan()]),
+        downloadButton(
+          ns("downloaded_all_files"),
+          file_translate[file_translate$ID == 35, get_lan()]
+        )
+      )
+    ))
+  }, ignoreInit = TRUE)
+  
+  # Fonction pour télécharger tous les fichiers
+  download_all_files_rf <- reactive({
+    save_dir <- isolate(get_save_dir())
+    
+    sapply(1:nrow(all_files()), function(i){
+      download_file_r <- all_files()[i, ]
+      if((input$select_file_dir != "/")){
+        fp <- file.path(save_dir, input$select_file_dir, download_file_r$recorded_name)
+        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name),  ".",
+                            tools::file_ext(download_file_r$name))
+      }else{
+        fp <- file.path(save_dir, download_file_r$recorded_name)
+        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name),  ".",
+                            tools::file_ext(download_file_r$name))
+      }
+      fp
+    })
+  })
+  
+  output$downloaded_all_files <- downloadHandler(
+    filename <- function() {
+      paste0("shinydrive_all_files_", format(Sys.time(), format = "%Y%m%d_%H%M%S"), ".zip")
+    },
+    content <- function(file) {
+      fp <- download_all_files_rf()
+      tmp_fp <- sapply(1:length(fp), function(x){
+        cur_file <- unname(fp[x])
+        tmp_file <- file.path(tempdir(), names(fp)[x])
+        file.copy(cur_file, to = tmp_file)
+        tmp_file <- tmp_file
+      })
+      removeModal()
+      zip(file, tmp_fp, flags = "-r9X -j")
+      
+      tryCatch({file.remove(tmp_fp)}, error = function(e) NULL, warning = function(e) NULL)
+    }
+  )
   
   # Bouton "Tout sélectionner" - Version avec JavaScript
   observeEvent(input$select_all_files, {
