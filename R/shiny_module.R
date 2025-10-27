@@ -1309,41 +1309,87 @@ shiny_drive_server <- function(input,
     ))
   }, ignoreInit = TRUE)
   
-  download_all_file_rf <- reactive({
+  # Bouton "Tout télécharger" en haut
+  observeEvent(input$download_all_files_top, {
+    file_translate <- get_file_translate()
+    req(all_files())
     
+    if(nrow(all_files()) == 0) {
+      showModal(modalDialog(
+        title = "Aucun fichier",
+        "Il n'y a aucun fichier à télécharger.",
+        easyClose = TRUE,
+        footer = modalButton("OK")
+      ))
+      return(NULL)
+    }
+    
+    showModal(modalDialog(
+      title = div(file_translate[file_translate$ID == 34, get_lan()], style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
+      p(paste0(nrow(all_files()), " ", 
+               if(get_lan() == "FR") "fichier(s) seront téléchargés" 
+               else if(get_lan() == "CN") "个文件将被下载" 
+               else "file(s) will be downloaded")),
+      footer = tagList(
+        modalButton(file_translate[file_translate$ID == 7, get_lan()]),
+        downloadButton(
+          ns("downloaded_all_files"),
+          file_translate[file_translate$ID == 35, get_lan()]
+        )
+      )
+    ))
+  }, ignoreInit = TRUE)
+  
+  # Fonction pour télécharger tous les fichiers
+  download_all_files_rf <- reactive({
     save_dir <- isolate(get_save_dir())
     
-    sapply(1:nrow(files_to_remove()), function(i){
-      download_file_r <- files_to_remove()[i, ]
-      if((input$select_file_dir != "/")){
+    sapply(1:nrow(all_files()), function(i){
+      download_file_r <- all_files()[i, ]
+      if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
         fp <- file.path(save_dir, input$select_file_dir, download_file_r$recorded_name)
-        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name),  ".",
+        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name), ".",
                             tools::file_ext(download_file_r$name))
-      }else{
+      } else {
         fp <- file.path(save_dir, download_file_r$recorded_name)
-        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name),  ".",
+        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name), ".",
                             tools::file_ext(download_file_r$name))
       }
       fp
     })
   })
   
-  output$downloaded_file <- downloadHandler(
-    filename <- function() {
-      paste0("shinydrive_files_", format(Sys.time(), format = "%Y%m%d_%H%M%S"), ".zip")
+  output$downloaded_all_files <- downloadHandler(
+    filename = function() {
+      paste0("shinydrive_all_files_", format(Sys.time(), format = "%Y%m%d_%H%M%S"), ".zip")
     },
-    content <- function(file) {
-      fp <- download_all_file_rf()
+    content = function(file) {
+      fp <- download_all_files_rf()
+      
+      if(length(fp) == 0) {
+        return(NULL)
+      }
+      
       tmp_fp <- sapply(1:length(fp), function(x){
         cur_file <- unname(fp[x])
         tmp_file <- file.path(tempdir(), names(fp)[x])
-        file.copy(cur_file, to = tmp_file)
-        tmp_file <- tmp_file
+        
+        if(file.exists(cur_file)) {
+          file.copy(cur_file, to = tmp_file, overwrite = TRUE)
+          tmp_file
+        } else {
+          NULL
+        }
       })
+      
+      tmp_fp <- tmp_fp[!sapply(tmp_fp, is.null)]
+      
       removeModal()
-      zip(file, tmp_fp, flags = "-r9X -j")
+      
+      if(length(tmp_fp) > 0) {
+        zip::zip(zipfile = file, files = tmp_fp, mode = "cherry-pick")
+      }
       
       tryCatch({file.remove(tmp_fp)}, error = function(e) NULL, warning = function(e) NULL)
     }
   )
-}
