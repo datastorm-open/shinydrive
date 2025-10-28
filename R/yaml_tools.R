@@ -470,3 +470,223 @@ create_shinydrive_config_recursive <- function(base_dir,
   
   return(invisible(processed_count))
 }
+
+supprimer_tous_les_yaml <- function(base_dir, 
+                                    config_file = "files_desc.yaml",
+                                    master_config_file = "files_desc.yaml",
+                                    confirm = TRUE,
+                                    dry_run = FALSE) {
+  
+  # Vérifications
+  if (!dir.exists(base_dir)) {
+    stop(paste("Le dossier", base_dir, "n'existe pas."))
+  }
+  
+  cat("========================================\n")
+  cat("SUPPRESSION DES FICHIERS YAML\n")
+  cat("========================================\n\n")
+  
+  cat("Dossier cible:", base_dir, "\n")
+  cat("Fichiers à supprimer:\n")
+  cat("  -", config_file, "(dans tous les sous-dossiers)\n")
+  cat("  -", master_config_file, "(à la racine)\n\n")
+  
+  # Rechercher tous les YAML locaux
+  yaml_locaux <- list.files(
+    path = base_dir,
+    pattern = paste0("^", config_file, "$"),
+    recursive = TRUE,
+    full.names = TRUE
+  )
+  
+  # Rechercher le YAML maître (seulement à la racine)
+  yaml_maitre <- file.path(base_dir, master_config_file)
+  
+  # Compter
+  nb_locaux <- length(yaml_locaux)
+  nb_maitre <- if (file.exists(yaml_maitre)) 1 else 0
+  nb_total <- nb_locaux + nb_maitre
+  
+  cat("Fichiers trouvés:\n")
+  cat("  - YAML locaux:", nb_locaux, "\n")
+  cat("  - YAML maître:", nb_maitre, "\n")
+  cat("  - TOTAL:", nb_total, "\n\n")
+  
+  if (nb_total == 0) {
+    cat("Aucun fichier YAML trouvé. Rien à supprimer.\n")
+    return(invisible(0))
+  }
+  
+  # Mode dry-run
+  if (dry_run) {
+    cat("MODE DRY-RUN (simulation, aucune suppression réelle)\n\n")
+    cat("Fichiers qui seraient supprimés:\n\n")
+    
+    if (nb_maitre > 0) {
+      cat("📁 YAML MAÎTRE:\n")
+      cat("  ", yaml_maitre, "\n\n")
+    }
+    
+    if (nb_locaux > 0) {
+      cat("📁 YAML LOCAUX (", nb_locaux, "):\n")
+      for (i in seq_along(yaml_locaux)) {
+        # Afficher chemin relatif
+        chemin_rel <- gsub(paste0("^", base_dir, "/?"), "", yaml_locaux[i])
+        cat("  ", i, ".", chemin_rel, "\n")
+      }
+    }
+    
+    cat("\n✓ Dry-run terminé. Aucun fichier n'a été supprimé.\n")
+    cat("Pour supprimer réellement, utilisez: dry_run = FALSE\n")
+    
+    return(invisible(nb_total))
+  }
+  
+  # Confirmation
+  if (confirm) {
+    cat("⚠️  ATTENTION : Cette action est IRRÉVERSIBLE !\n")
+    cat("⚠️  ", nb_total, "fichier(s) vont être DÉFINITIVEMENT supprimé(s).\n\n")
+    
+    reponse <- readline(prompt = "Voulez-vous continuer ? (oui/non) : ")
+    
+    if (tolower(trimws(reponse)) != "oui") {
+      cat("\n❌ Annulé par l'utilisateur. Aucun fichier n'a été supprimé.\n")
+      return(invisible(0))
+    }
+    cat("\n")
+  }
+  
+  # Suppression
+  cat("Suppression en cours...\n\n")
+  
+  nb_supprimes <- 0
+  nb_erreurs <- 0
+  
+  # Supprimer le YAML maître
+  if (nb_maitre > 0) {
+    cat("Suppression du YAML maître... ")
+    tryCatch({
+      file.remove(yaml_maitre)
+      cat("✓\n")
+      nb_supprimes <- nb_supprimes + 1
+    }, error = function(e) {
+      cat("✗ Erreur:", e$message, "\n")
+      nb_erreurs <- nb_erreurs + 1
+    })
+  }
+  
+  # Supprimer les YAML locaux
+  if (nb_locaux > 0) {
+    cat("Suppression des YAML locaux...\n")
+    for (i in seq_along(yaml_locaux)) {
+      chemin_rel <- gsub(paste0("^", base_dir, "/?"), "", yaml_locaux[i])
+      cat("  ", i, "/", nb_locaux, " ", chemin_rel, "... ")
+      
+      tryCatch({
+        file.remove(yaml_locaux[i])
+        cat("✓\n")
+        nb_supprimes <- nb_supprimes + 1
+      }, error = function(e) {
+        cat("✗ Erreur:", e$message, "\n")
+        nb_erreurs <- nb_erreurs + 1
+      })
+    }
+  }
+  
+  # Résumé
+  cat("\n========================================\n")
+  cat("RÉSUMÉ\n")
+  cat("========================================\n")
+  cat("Fichiers supprimés:", nb_supprimes, "/", nb_total, "\n")
+  if (nb_erreurs > 0) {
+    cat("Erreurs:", nb_erreurs, "\n")
+  }
+  cat("========================================\n")
+  
+  if (nb_supprimes == nb_total) {
+    cat("\n✓ Tous les fichiers YAML ont été supprimés avec succès.\n")
+  } else if (nb_supprimes > 0) {
+    cat("\n⚠ Suppression partielle. Vérifiez les erreurs ci-dessus.\n")
+  } else {
+    cat("\n❌ Aucun fichier n'a été supprimé. Vérifiez les erreurs.\n")
+  }
+  
+  return(invisible(nb_supprimes))
+}
+
+
+
+supprimer_yaml_anciens <- function(base_dir, 
+                                   jours = 30,
+                                   config_file = "files_desc.yaml",
+                                   master_config_file = "files_desc.yaml",
+                                   dry_run = FALSE) {
+  
+  cat("Recherche des YAML de plus de", jours, "jours...\n\n")
+  
+  # Rechercher tous les YAML
+  all_yamls <- c(
+    list.files(base_dir, pattern = paste0("^", config_file, "$"), 
+               recursive = TRUE, full.names = TRUE),
+    list.files(base_dir, pattern = paste0("^", master_config_file, "$"), 
+               recursive = TRUE, full.names = TRUE)
+  )
+  
+  # Filtrer par âge
+  date_limite <- Sys.Date() - jours
+  yaml_anciens <- c()
+  
+  for (yaml_path in all_yamls) {
+    if (file.exists(yaml_path)) {
+      file_info <- file.info(yaml_path)
+      if (as.Date(file_info$mtime) < date_limite) {
+        yaml_anciens <- c(yaml_anciens, yaml_path)
+      }
+    }
+  }
+  
+  nb_anciens <- length(yaml_anciens)
+  
+  if (nb_anciens == 0) {
+    cat("Aucun YAML de plus de", jours, "jours trouvé.\n")
+    return(invisible(0))
+  }
+  
+  cat("YAML de plus de", jours, "jours trouvés:", nb_anciens, "\n\n")
+  
+  if (dry_run) {
+    cat("MODE DRY-RUN\n")
+    for (yaml_path in yaml_anciens) {
+      file_info <- file.info(yaml_path)
+      age <- as.numeric(Sys.Date() - as.Date(file_info$mtime))
+      chemin_rel <- gsub(paste0("^", base_dir, "/?"), "", yaml_path)
+      cat("  ", chemin_rel, "(", age, "jours )\n")
+    }
+    return(invisible(nb_anciens))
+  }
+  
+  # Suppression
+  cat("Suppression de", nb_anciens, "fichier(s)...\n")
+  reponse <- readline(prompt = "Continuer ? (oui/non) : ")
+  
+  if (tolower(trimws(reponse)) != "oui") {
+    cat("Annulé.\n")
+    return(invisible(0))
+  }
+  
+  nb_supprimes <- 0
+  for (yaml_path in yaml_anciens) {
+    tryCatch({
+      file.remove(yaml_path)
+      nb_supprimes <- nb_supprimes + 1
+    }, error = function(e) {
+      cat("Erreur:", yaml_path, "-", e$message, "\n")
+    })
+  }
+  
+  cat("\n✓", nb_supprimes, "fichier(s) supprimé(s).\n")
+  return(invisible(nb_supprimes))
+}
+
+# Exemple : Supprimer les YAML de plus de 90 jours
+# supprimer_yaml_anciens("/data/CIF/output/PROD/", jours = 90, dry_run = TRUE)

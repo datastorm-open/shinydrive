@@ -31,7 +31,7 @@ shiny_drive_ui <- function(id){
       actionButton("fix FA", "fix FA", icon = icon("refresh"), style = "display:none")
     ),
     
-
+    
     conditionalPanel(condition = "output.show_dir", ns = ns,
                      fluidRow(
                        column(12,
@@ -51,7 +51,7 @@ shiny_drive_ui <- function(id){
                        )
                      ) 
     ),
-
+    
     # End fold management
     conditionalPanel("output.is_admin", ns = ns,
                      uiOutput(ns("admin_add_file")),
@@ -822,15 +822,29 @@ shiny_drive_server <- function(input,
   })
   
   download_file_rf <- reactive({
-    
     save_dir <- isolate(get_save_dir())
     
     if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      fp <- file.path(save_dir, input$select_file_dir, download_file_r()$recorded_name)
-    }else{
-      fp <- file.path(save_dir,download_file_r()$recorded_name)
+      dir <- file.path(save_dir, input$select_file_dir)
+    } else {
+      dir <- save_dir
     }
-    fp
+    
+    # Essayer avec recorded_name (fichiers uploadés normalement)
+    fp_recorded <- file.path(dir, download_file_r()$recorded_name)
+    
+    # Essayer avec name simple (fichiers de create_shinydrive_config_recursive)
+    fp_simple <- file.path(dir, download_file_r()$name)
+    
+    # Retourner celui qui existe
+    if(file.exists(fp_recorded)) {
+      fp_recorded
+    } else if(file.exists(fp_simple)) {
+      fp_simple
+    } else {
+      # Si aucun n'existe, retourner recorded_name pour que l'erreur soit claire
+      fp_recorded
+    }
   })
   
   
@@ -1104,31 +1118,55 @@ shiny_drive_server <- function(input,
     ))
   }, ignoreInit = TRUE)
   
-  # Fonction pour télécharger tous les fichiers
-  download_all_files_rf <- reactive({
-    save_dir <- isolate(get_save_dir())
+  # Fonction pour récupérer les chemins des fichiers sélectionnés
+  download_selected_files_rf <- reactive({
+    req(files_to_remove())
     
-    sapply(1:nrow(all_files()), function(i){
-      download_file_r <- all_files()[i, ]
-      if((input$select_file_dir != "/")){
-        fp <- file.path(save_dir, input$select_file_dir, download_file_r$recorded_name)
-        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name),  ".",
-                            tools::file_ext(download_file_r$name))
-      }else{
-        fp <- file.path(save_dir, download_file_r$recorded_name)
-        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name),  ".",
-                            tools::file_ext(download_file_r$name))
+    if(nrow(files_to_remove()) == 0) return(character(0))
+    
+    save_dir <- isolate(get_save_dir())
+    req(save_dir)
+    
+    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
+      dir <- file.path(save_dir, input$select_file_dir)
+    } else {
+      dir <- save_dir
+    }
+    
+    # Récupérer les fichiers sélectionnés avec recorded_name
+    all_files_data <- all_files()
+    selected_ids <- files_to_remove()$id
+    
+    sapply(selected_ids, function(file_id){
+      file_info <- all_files_data[all_files_data$id == file_id, ]
+      
+      if(nrow(file_info) == 0) return(NULL)
+      
+      # Essayer avec recorded_name puis avec name simple
+      fp_recorded <- file.path(dir, file_info$recorded_name)
+      fp_simple <- file.path(dir, file_info$name)
+      
+      if(file.exists(fp_recorded)) {
+        fp <- fp_recorded
+      } else if(file.exists(fp_simple)) {
+        fp <- fp_simple
+      } else {
+        fp <- fp_recorded  # Fallback
       }
+      
+      names(fp) <- paste0(tools::file_path_sans_ext(file_info$name), ".",
+                          tools::file_ext(file_info$name))
       fp
     })
   })
+  
   
   output$downloaded_file <- downloadHandler(
     filename = function() {
       paste0("shinydrive_files_", format(Sys.time(), format = "%Y%m%d_%H%M%S"), ".zip")
     },
     content = function(file) {
-      fp <- download_all_file_rf()
+      fp <- download_selected_files_rf()  # Utiliser la nouvelle fonction pour les fichiers sélectionnés
       
       if(length(fp) == 0) {
         return(NULL)
@@ -1342,19 +1380,36 @@ shiny_drive_server <- function(input,
   
   # Fonction pour télécharger tous les fichiers
   download_all_files_rf <- reactive({
+    req(all_files())
+    
+    if(nrow(all_files()) == 0) return(character(0))
+    
     save_dir <- isolate(get_save_dir())
+    req(save_dir)
+    
+    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
+      dir <- file.path(save_dir, input$select_file_dir)
+    } else {
+      dir <- save_dir
+    }
     
     sapply(1:nrow(all_files()), function(i){
       download_file_r <- all_files()[i, ]
-      if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-        fp <- file.path(save_dir, input$select_file_dir, download_file_r$recorded_name)
-        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name), ".",
-                            tools::file_ext(download_file_r$name))
+      
+      # Essayer avec recorded_name puis avec name simple
+      fp_recorded <- file.path(dir, download_file_r$recorded_name)
+      fp_simple <- file.path(dir, download_file_r$name)
+      
+      if(file.exists(fp_recorded)) {
+        fp <- fp_recorded
+      } else if(file.exists(fp_simple)) {
+        fp <- fp_simple
       } else {
-        fp <- file.path(save_dir, download_file_r$recorded_name)
-        names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name), ".",
-                            tools::file_ext(download_file_r$name))
+        fp <- fp_recorded  # Fallback
       }
+      
+      names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name), ".",
+                          tools::file_ext(download_file_r$name))
       fp
     })
   })
