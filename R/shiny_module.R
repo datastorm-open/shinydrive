@@ -578,8 +578,13 @@ shiny_drive_server <- function(input,
                               )
                               
 
-                                  if(!is.null(result) && nrow(result) > 0) {
-                                    result$subdir <- result$file_path
+                              if(!is.null(result) && nrow(result) > 0) {
+                                # Si la colonne file_path n'existe pas, la créer
+                                if(!"file_path" %in% colnames(result)) {
+                                  result$file_path <- NA
+                                }
+                                
+                                result$subdir <- result$file_path
                                     
                                     # Remplacer les NULL et NA par des chaînes vides
                                     result$subdir[is.na(result$subdir) | is.null(result$subdir)] <- ""

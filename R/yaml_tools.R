@@ -323,6 +323,14 @@ get_yaml_info <- function(yml,
       }
     })
     
+    if(length(file_path) == 0) {
+      file_path <- rep(NA, length(id))
+    } else if(length(file_path) < length(id)) {
+      # Compléter avec NA pour les entrées manquantes
+      file_path <- c(file_path, rep(NA, length(id) - length(file_path)))
+    }
+    
+    
     dt <- data.frame(id = id, 
                      type = unname(png_extension), 
                      name = names, 
