@@ -569,13 +569,23 @@ shiny_drive_server <- function(input,
                             # This function returns the content of log_file
                             valueFunc = function() {
                               x <- isolate(req_yml())
-                              get_yaml_info(x, 
-                                            recorded_name = TRUE,
-                                            date_time_format = date_time_format, 
-                                            add_img = TRUE, 
-                                            img_size = 30,
-                                            format_size = TRUE
+                              result <- get_yaml_info(x, 
+                                                      recorded_name = TRUE,
+                                                      date_time_format = date_time_format, 
+                                                      add_img = TRUE, 
+                                                      img_size = 30,
+                                                      format_size = TRUE
                               )
+                              
+
+                                  if(!is.null(result) && nrow(result) > 0) {
+                                    result$subdir <- result$file_path
+                                    
+                                    # Remplacer les NULL et NA par des chaînes vides
+                                    result$subdir[is.na(result$subdir) | is.null(result$subdir)] <- ""
+                                  }
+                              
+                              result
                             }
   )
   
@@ -718,6 +728,8 @@ shiny_drive_server <- function(input,
     
     
     dt$recorded_name <- NULL
+    dt$description <- NULL
+    dt$file_path <- NULL
     
     file_translate <- get_file_translate()
     
@@ -758,7 +770,7 @@ shiny_drive_server <- function(input,
                      file_translate[file_translate$ID == 19, get_lan()],
                      file_translate[file_translate$ID == 20, get_lan()],
                      file_translate[file_translate$ID == 48, get_lan()],
-                     file_translate[file_translate$ID == 21, get_lan()],
+                     file_translate[file_translate$ID == 1, get_lan()],
                      file_translate[file_translate$ID == 22, get_lan()],
                      file_translate[file_translate$ID == 23, get_lan()],
                      file_translate[file_translate$ID == 24, get_lan()],
@@ -773,7 +785,7 @@ shiny_drive_server <- function(input,
                       file_translate[file_translate$ID == 19, get_lan()],
                       file_translate[file_translate$ID == 20, get_lan()],
                       file_translate[file_translate$ID == 48, get_lan()],
-                      file_translate[file_translate$ID == 21, get_lan()],
+                      file_translate[file_translate$ID == 1, get_lan()],
                       file_translate[file_translate$ID == 24, get_lan()],
                       file_translate[file_translate$ID == 25, get_lan()])
       
@@ -784,11 +796,13 @@ shiny_drive_server <- function(input,
       language = list(url = file_translate[file_translate$ID == 26, get_lan()]),
       drawCallback = DT::JS("function() {Shiny.bindAll(this.api().table().node());}"),
       scrollX = TRUE,
+      searchHighlight = TRUE,
       columnDefs = list(
         list(className =  "dt-head-center", "targets" = "_all"),
         list(width = "50px", targets = target_wd_cols),
         list(type = "string", targets = 3),  
-        list(orderable = FALSE, targets = 3) 
+        list(orderable = FALSE, targets = 3),
+        list(searchable = TRUE, targets = c(1, 2, 4))   
       )
     )
     
@@ -810,7 +824,8 @@ shiny_drive_server <- function(input,
       selection = "none",
       extensions = 'AutoFill',
       #extensions = 'FixedColumns', # bug using FixedColumns on checkbox + update table...
-      options = default_options
+      options = default_options,
+      filter = 'top'
     )
   }, server = FALSE)
   
@@ -823,18 +838,27 @@ shiny_drive_server <- function(input,
   
   download_file_rf <- reactive({
     save_dir <- isolate(get_save_dir())
+    file_info <- download_file_r()
     
+    # Construire le répertoire de base (où se trouve le YAML)
     if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      dir <- file.path(save_dir, input$select_file_dir)
+      yaml_dir <- file.path(save_dir, input$select_file_dir)
     } else {
-      dir <- save_dir
+      yaml_dir <- save_dir
+    }
+    
+    # Si file_path existe et n'est pas vide, ajouter le sous-dossier
+    if(!is.null(file_info$file_path) && file_info$file_path != "" && !is.na(file_info$file_path)) {
+      dir <- file.path(yaml_dir, file_info$file_path)
+    } else {
+      dir <- yaml_dir
     }
     
     # Essayer avec recorded_name (fichiers uploadés normalement)
-    fp_recorded <- file.path(dir, download_file_r()$recorded_name)
+    fp_recorded <- file.path(dir, file_info$recorded_name)
     
     # Essayer avec name simple (fichiers de create_shinydrive_config_recursive)
-    fp_simple <- file.path(dir, download_file_r()$name)
+    fp_simple <- file.path(dir, file_info$name)
     
     # Retourner celui qui existe
     if(file.exists(fp_recorded)) {
@@ -1041,6 +1065,10 @@ shiny_drive_server <- function(input,
       dir <- save_dir
     }
     
+    file_to_delete <- file_to_remove()
+    if(!is.null(file_to_delete$subdir) && file_to_delete$subdir != "" && !is.na(file_to_delete$subdir)) {
+      dir <- file.path(dir, file_to_delete$subdir)
+    }
     
     ctrl_rm <- tryCatch({
       suppress_file_in_dir(id = as.character(file_to_remove()$id),
@@ -1128,9 +1156,9 @@ shiny_drive_server <- function(input,
     req(save_dir)
     
     if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      dir <- file.path(save_dir, input$select_file_dir)
+      base_dir <- file.path(save_dir, input$select_file_dir)
     } else {
-      dir <- save_dir
+      base_dir <- save_dir
     }
     
     # Récupérer les fichiers sélectionnés avec recorded_name
@@ -1141,6 +1169,13 @@ shiny_drive_server <- function(input,
       file_info <- all_files_data[all_files_data$id == file_id, ]
       
       if(nrow(file_info) == 0) return(NULL)
+      
+      # Utiliser file_path si disponible, sinon utiliser base_dir
+      if(!is.null(file_info$file_path) && file_info$file_path != "" && !is.na(file_info$file_path)) {
+        dir <- file.path(base_dir, file_info$file_path)
+      } else {
+        dir <- base_dir
+      }
       
       # Essayer avec recorded_name puis avec name simple
       fp_recorded <- file.path(dir, file_info$recorded_name)
@@ -1388,14 +1423,22 @@ shiny_drive_server <- function(input,
     req(save_dir)
     
     if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      dir <- file.path(save_dir, input$select_file_dir)
+      base_dir <- file.path(save_dir, input$select_file_dir)
     } else {
-      dir <- save_dir
+      base_dir <- save_dir
     }
     
     sapply(1:nrow(all_files()), function(i){
       download_file_r <- all_files()[i, ]
       
+      # Utiliser file_path si disponible, sinon utiliser base_dir
+      if(!is.null(download_file_r$file_path) && download_file_r$file_path != "" && !is.na(download_file_r$file_path)) {
+        dir <- file.path(base_dir, download_file_r$file_path)
+      } else {
+        dir <- base_dir
+      }
+      
+
       # Essayer avec recorded_name puis avec name simple
       fp_recorded <- file.path(dir, download_file_r$recorded_name)
       fp_simple <- file.path(dir, download_file_r$name)

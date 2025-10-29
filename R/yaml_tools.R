@@ -76,7 +76,7 @@ add_file_in_dir <- function(file,
                             dir,
                             yml,
                             name = tools::file_path_sans_ext(basename(file)),
-                            description = "", 
+                            description = "",
                             date_time_format = "%Y%m%d_%H%M%S"){
 
   if(!dir.exists(dir)) stop("Directory '", dir, "' not found")
@@ -91,6 +91,7 @@ add_file_in_dir <- function(file,
     .add_file_in_yaml(yml, name = name, datetime = date_time,
                      extension = tools::file_ext(file),
                      description = description,
+                     file_path = normalizePath(dir, winslash = "/"),
                      size = file_size)
   }
   check_copy
@@ -101,6 +102,7 @@ add_file_in_dir <- function(file,
                              datetime,
                              extension,
                              description,
+                             file_path,
                              size){
   # Read yaml
   if(!file.exists(yml)){
@@ -119,6 +121,7 @@ add_file_in_dir <- function(file,
          date_upload = datetime,
          extension = extension,
          description = description,
+         file_path = file_path,
          size = size
     )
   )
@@ -187,6 +190,7 @@ edit_file_in_dir <- function(id,
     if(!is.null(date_time)) mod_list$date_upload <- date_time
     if(!is.null(extension)) mod_list$extension <- extension
     if(!is.null(description)) mod_list$description <- description
+    if(!is.null(file_path)) mod_list$file_path <- normalizePath(dir, winslash = "/")
     if(!is.null(size)) mod_list$size <- size
 
     yml_info[[id]] <- mod_list
@@ -254,6 +258,7 @@ get_yaml_info <- function(yml,
     date_time <- format(as.POSIXct(as.character(date_time), format = date_time_format))
     
     description <- .gyc(yml_info, "description")
+    file_path <- .gyc(yml_info, "file_path")
     
     # CORRECTION : Récupérer les tailles en gardant les positions
     sizes <- tryCatch({
@@ -268,12 +273,7 @@ get_yaml_info <- function(yml,
       warning(paste("Error extracting sizes:", e$message))
       rep(NA, length(yml_info))
     })
-    
-    # DÉBOGAGE
-    print(paste("Nombre d'éléments - id:", length(id), "names:", length(names), 
-                "date_time:", length(date_time), "sizes:", length(sizes), 
-                "description:", length(description)))
-    
+
     # Vérification de longueur de sizes
     if(length(sizes) == 0) {
       warning("sizes vector is empty, filling with NA")
@@ -299,8 +299,7 @@ get_yaml_info <- function(yml,
       })
     }
     
-    # Vérification finale des longueurs
-    print(paste("Après formatage - sizes:", length(sizes)))
+
     
     if(length(sizes) != length(id)) {
       warning(paste("Size mismatch: id has", length(id), "elements but sizes has", length(sizes)))
@@ -330,6 +329,7 @@ get_yaml_info <- function(yml,
                      date_time = date_time, 
                      size = sizes,
                      description = description, 
+                     file_path = file_path,
                      stringsAsFactors = FALSE)
     
     if(!add_img) dt$type <- NULL
@@ -380,51 +380,41 @@ create_shinydrive_config_recursive <- function(base_dir,
     stop(paste("Le dossier", base_dir, "n'existe pas."))
   }
   
+  # Normaliser le chemin pour éviter les doubles slashes
+  base_dir <- normalizePath(base_dir, winslash = "/", mustWork = TRUE)
+  
   message(paste("\n=== Scan récursif de:", base_dir, "==="))
   
-
+  # Récupérer TOUS les sous-dossiers récursivement
   all_dirs <- list.dirs(base_dir, recursive = TRUE, full.names = TRUE)
   
-  processed_count <- 0
+  message(paste("Nombre total de dossiers trouvés:", length(all_dirs)))
+  
+  # ============================================
+  # ÉTAPE 1 : Collecter TOUS les fichiers avec leur localisation
+  # ============================================
+  all_files_info <- list()
   
   for (dir_path in all_dirs) {
     
-    dir_name <- basename(dir_path)
-    
-    
+    # Lister les fichiers du dossier actuel (NON récursif)
     files <- list.files(
       path = dir_path,
       pattern = file_patterns,
-      recursive = FALSE,  # Important : seulement ce niveau
+      recursive = FALSE,
       full.names = TRUE
     )
     
-
+    # Exclure le fichier de config lui-même et les dossiers
+    files <- files[!dir.exists(files)]
     files <- files[basename(files) != config_file]
     
+    # Si pas de fichiers, passer au suivant
     if (length(files) == 0) {
       next
     }
     
-    message(paste("\n📁", gsub(paste0("^", base_dir, "/?"), "", dir_path)))
-    message(paste("  →", length(files), "fichier(s) trouvé(s)"))
-    
-    config_path <- file.path(dir_path, config_file)
-    
-
-    existing_files <- character(0)
-    if (file.exists(config_path)) {
-      tryCatch({
-        yml_info <- yaml::read_yaml(config_path)
-        if (!is.null(yml_info) && length(yml_info) > 0) {
-          existing_files <- sapply(yml_info, function(x) x$name)
-        }
-      }, error = function(e) {})
-    }
-    
-    files_added <- 0
-    
-
+    # Parcourir chaque fichier
     for (file_path in files) {
       
       file_name <- basename(file_path)
@@ -434,41 +424,113 @@ create_shinydrive_config_recursive <- function(base_dir,
       file_info <- file.info(file_path)
       nom_sans_ext <- tools::file_path_sans_ext(file_name)
       extension <- tools::file_ext(file_name)
-      date_fichier <- format(file_info$mtime, "%Y%m%d_%H%M%S")
+      
+      # Format de date : YYYYMMDD_HHMMSS
+      date_fichier <- as.character(strftime(file_info$mtime[1], "%Y%m%d_%H%M%S", tz = "UTC"))
+      
       description <- gsub("_", " ", nom_sans_ext)
       size <- file_info$size
+      file_path <- normalizePath(dir_path, winslash = "/")
       
-      if (nom_sans_ext %in% existing_files) {
-        next
-      }
-      
-      tryCatch({
-        shinydrive:::.add_file_in_yaml(
-          yml = config_path,
-          name = nom_sans_ext,
-          datetime = date_fichier,
-          extension = extension,
-          description = description,
-          size = size
-        )
-        
-        files_added <- files_added + 1
-        
-      }, error = function(e) {
-        warning(paste("  ✗ Erreur:", e$message))
-      })
-    }
-    
-    if (files_added > 0) {
-      message(paste("  ✓", files_added, "fichier(s) ajouté(s)"))
-      processed_count <- processed_count + 1
+      # Stocker les informations du fichier avec le chemin du dossier parent
+      all_files_info[[length(all_files_info) + 1]] <- list(
+        name = nom_sans_ext,
+        date_upload = date_fichier,  # CHANGÉ: datetime -> date_upload
+        extension = extension,
+        description = description,
+        size = size,
+        file_path = file_path,
+        parent_dir = dir_path
+      )
     }
   }
   
-  message(paste("\n=== Terminé ==="))
-  message(paste("✓", processed_count, "dossier(s) avec YAML créés"))
+  message(paste("Nombre total de fichiers trouvés:", length(all_files_info)))
   
-  return(invisible(processed_count))
+  # ============================================
+  # ÉTAPE 2 : Créer un YAML dans chaque dossier
+  # ============================================
+  processed_count <- 0
+  
+  for (dir_path in all_dirs) {
+    
+    # Pour chaque dossier, filtrer les fichiers qui sont dans ce dossier OU ses sous-dossiers
+    files_for_this_dir <- Filter(function(f) {
+      # Vérifier si le fichier est dans ce dossier ou un sous-dossier
+      startsWith(f$parent_dir, dir_path)
+    }, all_files_info)
+    
+    if (length(files_for_this_dir) == 0) {
+      next
+    }
+    
+    # Calculer le chemin relatif du dossier
+    chemin_relatif <- gsub(paste0("^", base_dir, "/?"), "", dir_path)
+    if (chemin_relatif == "") {
+      chemin_relatif <- "racine"
+    }
+    
+    message(paste("\n📁", chemin_relatif))
+    message(paste("  →", length(files_for_this_dir), "fichier(s) total (incluant sous-dossiers)"))
+    
+    config_path <- file.path(dir_path, config_file)
+    
+    # Préparer la liste des fichiers pour le YAML
+    yaml_content <- list()
+    
+    for (file_entry in files_for_this_dir) {
+      
+      relative_subdir <- gsub(paste0("^", dir_path, "/?"), "", file_entry$parent_dir)
+      if (relative_subdir == "") relative_subdir <- NULL
+      
+      
+      # Utiliser juste le nom comme identifiant
+      file_id <- file_entry$name
+      
+      if (!is.null(relative_subdir)) {
+        # Avec subdir
+        yaml_content[[file_id]] <- list(
+          name = file_entry$name,
+          date_upload = file_entry$date_upload,
+          extension = file_entry$extension,
+          description = file_entry$description,
+          size = file_entry$size,
+          file_path = relative_subdir  # ✅ Ajouté ici
+        )
+      } else {
+        # Sans subdir
+        yaml_content[[file_id]] <- list(
+          name = file_entry$name,
+          date_upload = file_entry$date_upload,
+          extension = file_entry$extension,
+          description = file_entry$description,
+          size = file_entry$size,
+          file_path = ""
+        )
+      }
+    }
+    
+    # Trier par identifiant
+    yaml_content <- yaml_content[order(names(yaml_content))]
+    
+    # Écrire le YAML
+    tryCatch({
+      yaml::write_yaml(yaml_content, config_path)
+      message(paste("  ✓ YAML créé/mis à jour:", config_path))
+      processed_count <- processed_count + 1
+    }, error = function(e) {
+      warning(paste("  ✗ Erreur création YAML:", e$message))
+    })
+  }
+  
+  message(paste("\n=== Terminé ==="))
+  message(paste("✓", processed_count, "YAML créé(s)/mis à jour"))
+  message(paste("✓", length(all_files_info), "fichiers au total"))
+  
+  return(invisible(list(
+    processed_dirs = processed_count,
+    total_files = length(all_files_info)
+  )))
 }
 
 supprimer_tous_les_yaml <- function(base_dir, 
