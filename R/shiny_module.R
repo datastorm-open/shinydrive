@@ -40,12 +40,25 @@ shiny_drive_ui <- function(id){
                                        uiOutput(ns("ui_title"))
                                 ),
                                 column(4,
-                                       style = "margin-left: 15px;",
                                        selectInput(ns("select_file_dir"), NULL, choices = NULL, selected = NULL, width = "100%")
                                 ),
                                 conditionalPanel("output.is_admin", ns = ns,
-                                                 column(5, uiOutput(ns("admin_dir_btn"))
-                                                 )
+                                                 column(4, uiOutput(ns("admin_dir_btn")))  
+                                ),
+                                column(2,
+                                       style = "text-align: right; padding-right: 15px;",
+                                       conditionalPanel(
+                                         condition = "output.download_in_progress",
+                                         ns = ns,
+                                         tags$div(
+                                           style = "margin-top: 8px; display: inline-flex; align-items: center;",
+                                           icon("spinner", class = "fa-spin fa-2x text-primary"),
+                                           tags$span(
+                                             style = "margin-left: 5px; color: #337ab7; font-weight: bold; white-space: nowrap;",
+                                             uiOutput(ns("download_text"))
+                                           )
+                                         )
+                                       )
                                 )
                               )
                        )
@@ -62,7 +75,7 @@ shiny_drive_ui <- function(id){
       column(12,
              div(style = "margin-bottom: 10px;",
                  actionButton(ns("download_all_files_top"), 
-                              "",  # Le texte sera défini dynamiquement
+                              "",  
                               icon = icon("download"), 
                               class = "btn-primary pull-right")
              )
@@ -75,12 +88,12 @@ shiny_drive_ui <- function(id){
                        column(12,
                               div(style = "margin-top: 10px; margin-bottom: 10px;",
                                   actionButton(ns("select_all_files"), 
-                                               "",  # Le texte sera défini dynamiquement
+                                               "",  
                                                icon = icon("check-square"), 
                                                class = "btn-success pull-right",
                                                style = "margin-left: 5px;"),
                                   actionButton(ns("deselect_all_files"), 
-                                               "",  # Le texte sera défini dynamiquement
+                                               "",  
                                                icon = icon("square"), 
                                                class = "btn-default pull-right")
                               )
@@ -168,6 +181,19 @@ shiny_drive_server <- function(input,
   
   ns <- session$ns
   
+  download_in_progress <- reactiveVal(FALSE)
+  
+  output$download_in_progress <- reactive({
+    download_in_progress()
+  })
+  outputOptions(output, "download_in_progress", suspendWhenHidden = FALSE)
+  
+  output$download_text <- renderUI({  
+    file_translate <- get_file_translate()
+    req(file_translate)
+    file_translate[file_translate$ID == 53, get_lan()]
+  })
+  
   if (!shiny::is.reactive(yml)){
     get_yml <- shiny::reactive({yml})
   } else {
@@ -226,7 +252,7 @@ shiny_drive_server <- function(input,
     div(h4(file_translate[file_translate$ID == 45, get_lan()]), align = "center")
   })
   
-  # Admin TRUE (pass to module at final version)
+  
   output$is_admin <- reactive({
     get_admin_user()
   })
@@ -276,7 +302,10 @@ shiny_drive_server <- function(input,
       class = "btn-primary"
     )
   })
-  # gestion dossier
+  
+  
+
+ 
   auto_udpate <- reactiveTimer(intervalMillis)
   list.available.dirs <- reactiveVal(NULL)
   
@@ -383,7 +412,7 @@ shiny_drive_server <- function(input,
   }, ignoreInit = TRUE)
   
   
-  # Renomer un sous-dossier
+  
   observeEvent(input$rename_file_dir_selected,{
     
     save_dir <- isolate(get_save_dir())
@@ -438,7 +467,7 @@ shiny_drive_server <- function(input,
     }
   }, ignoreInit = TRUE)
   
-  # supprimer un dossier
+  
   observeEvent(input$remove_file_dir,{
     file_translate <- get_file_translate()
     
@@ -566,7 +595,7 @@ shiny_drive_server <- function(input,
                                 ""
                               }
                             },
-                            # This function returns the content of log_file
+                            
                             valueFunc = function() {
                               x <- isolate(req_yml())
                               result <- get_yaml_info(x, 
@@ -579,14 +608,13 @@ shiny_drive_server <- function(input,
                               
 
                               if(!is.null(result) && nrow(result) > 0) {
-                                # Si la colonne file_path n'existe pas, la créer
                                 if(!"file_path" %in% colnames(result)) {
                                   result$file_path <- NA
                                 }
                                 
                                 result$subdir <- result$file_path
                                     
-                                    # Remplacer les NULL et NA par des chaînes vides
+                                    
                                     result$subdir[is.na(result$subdir) | is.null(result$subdir)] <- ""
                                   }
                               
@@ -599,7 +627,7 @@ shiny_drive_server <- function(input,
   })
   outputOptions(output, "have_files", suspendWhenHidden = FALSE)
   
-  # launch modal to add a new file
+  
   count_file_load <- reactiveVal(round(runif(1, 1, 100000000), 0))
   
   output$file_load <- renderUI({
@@ -670,14 +698,14 @@ shiny_drive_server <- function(input,
     }
   })
   
-  # Add a file
+ 
   observeEvent(input$added_file, {
     
     save_dir <- isolate(get_save_dir())
     
     file_info <- input[[paste0("file_load", count_file_load())]]
     
-    # To folder
+   
     if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
       dir <- file.path(save_dir, input$select_file_dir)
     }else{
@@ -700,7 +728,7 @@ shiny_drive_server <- function(input,
     error = function(e){
       showModal(
         modalDialog(
-          title = "Error adding file",
+          title = file_translate[file_translate$ID == 58, get_lan()],
           easyClose = TRUE,
           footer = NULL,
           e$message
@@ -730,13 +758,12 @@ shiny_drive_server <- function(input,
     
     dt <- all_files()
     
-    
-    
-    dt$recorded_name <- NULL
-    dt$description <- NULL
-    dt$file_path <- NULL
-    
     file_translate <- get_file_translate()
+    
+    has_description <- !all(is.na(dt$description) | dt$description == "")
+    has_size <- !all(is.na(dt$size) | dt$size == "" | dt$size == 0)
+    has_subdir <- !all(is.na(dt$subdir) | dt$subdir == "")
+    
     
     if(nrow(dt) == 0) return(NULL)
     
@@ -760,42 +787,46 @@ shiny_drive_server <- function(input,
     file_translate[[get_lan()]] <- as.character(file_translate[[get_lan()]])
     
     dt$id <- NULL
+    dt$recorded_name <- NULL
+    dt$file_path <- NULL
+
     
-    
+    if(!has_description) dt$description <- NULL
+    if(!has_size) dt$size <- NULL
+    if(!has_subdir) dt$subdir <- NULL
     
     
     dt <- dt[order(dt$date_time, decreasing = get_decreasing()), ]
     
+    col_names <- c(file_translate[file_translate$ID == 46, get_lan()],
+                   file_translate[file_translate$ID == 19, get_lan()],
+                   file_translate[file_translate$ID == 20, get_lan()])
     
-    
+    if(has_size) col_names <- c(col_names, file_translate[file_translate$ID == 48, get_lan()])
+    if(has_description) col_names <- c(col_names, file_translate[file_translate$ID == 38, get_lan()])
+    if(has_subdir) col_names <- c(col_names, file_translate[file_translate$ID == 1, get_lan()])
     
     if(get_admin_user()){
-      if(ncol(dt) < 9){return(NULL)}
-      names(dt) <- c(file_translate[file_translate$ID == 46, get_lan()],
-                     file_translate[file_translate$ID == 19, get_lan()],
-                     file_translate[file_translate$ID == 20, get_lan()],
-                     file_translate[file_translate$ID == 48, get_lan()],
-                     file_translate[file_translate$ID == 1, get_lan()],
+      col_names <- c(col_names,
                      file_translate[file_translate$ID == 22, get_lan()],
                      file_translate[file_translate$ID == 23, get_lan()],
                      file_translate[file_translate$ID == 24, get_lan()],
                      file_translate[file_translate$ID == 25, get_lan()])
       
-      
+      min_cols <- 6  
       target_wd_cols <- c(0, (ncol(dt)-4):(ncol(dt)-1))
-    }else{
-      if(ncol(dt) < 7){return(NULL)}
+    } else {
+      col_names <- c(col_names,
+                     file_translate[file_translate$ID == 24, get_lan()],
+                     file_translate[file_translate$ID == 25, get_lan()])
       
-      names(dt) <- c( file_translate[file_translate$ID == 46, get_lan()],
-                      file_translate[file_translate$ID == 19, get_lan()],
-                      file_translate[file_translate$ID == 20, get_lan()],
-                      file_translate[file_translate$ID == 48, get_lan()],
-                      file_translate[file_translate$ID == 1, get_lan()],
-                      file_translate[file_translate$ID == 24, get_lan()],
-                      file_translate[file_translate$ID == 25, get_lan()])
-      
+      min_cols <- 5  
       target_wd_cols <- c(0, (ncol(dt)-2):(ncol(dt)-1))
     }
+    
+    if(ncol(dt) < min_cols) return(NULL)
+    
+    names(dt) <- col_names
     
     default_options = list(
       language = list(url = file_translate[file_translate$ID == 26, get_lan()]),
@@ -828,7 +859,7 @@ shiny_drive_server <- function(input,
       escape = FALSE,
       selection = "none",
       extensions = 'AutoFill',
-      #extensions = 'FixedColumns', # bug using FixedColumns on checkbox + update table...
+   
       options = default_options,
       filter = 'top'
     )
@@ -845,33 +876,33 @@ shiny_drive_server <- function(input,
     save_dir <- isolate(get_save_dir())
     file_info <- download_file_r()
     
-    # Construire le répertoire de base (où se trouve le YAML)
+
     if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
       yaml_dir <- file.path(save_dir, input$select_file_dir)
     } else {
       yaml_dir <- save_dir
     }
     
-    # Si file_path existe et n'est pas vide, ajouter le sous-dossier
+
     if(!is.null(file_info$file_path) && file_info$file_path != "" && !is.na(file_info$file_path)) {
       dir <- file.path(yaml_dir, file_info$file_path)
     } else {
       dir <- yaml_dir
     }
     
-    # Essayer avec recorded_name (fichiers uploadés normalement)
+
     fp_recorded <- file.path(dir, file_info$recorded_name)
     
-    # Essayer avec name simple (fichiers de create_shinydrive_config_recursive)
+
     fp_simple <- file.path(dir, file_info$name)
     
-    # Retourner celui qui existe
+
     if(file.exists(fp_recorded)) {
       fp_recorded
     } else if(file.exists(fp_simple)) {
       fp_simple
     } else {
-      # Si aucun n'existe, retourner recorded_name pour que l'erreur soit claire
+
       fp_recorded
     }
   })
@@ -892,15 +923,25 @@ shiny_drive_server <- function(input,
       tags$div(id = "placeholder-editfile-exist"),
       footer = tagList(
         modalButton(file_translate[file_translate$ID == 7, get_lan()]),
-        downloadButton(
-          ns("downloaded_file_sgl"),
-          file_translate[file_translate$ID == 27, get_lan()]
+        
+        tags$div(
+          onclick = sprintf("Shiny.setInputValue('%s', Math.random(), {priority: 'event'})", ns("download_clicked_sgl")),
+          downloadButton(
+            ns("downloaded_file_sgl"),
+            file_translate[file_translate$ID == 27, get_lan()]
+          )
         )
+        
       )
     ))
   }, ignoreInit = TRUE)
   
-  # download_file
+  observeEvent(input$download_clicked_sgl, {
+    download_in_progress(TRUE)
+    removeModal()
+  }, ignoreInit = TRUE)
+  
+  
   output$downloaded_file_sgl <- downloadHandler(
     
     filename <- function() {
@@ -911,8 +952,10 @@ shiny_drive_server <- function(input,
     
     content <- function(file) {
       fp <- download_file_rf()
-      removeModal()
       file.copy(fp, file)
+      
+      download_in_progress(FALSE)
+
     }
   )
   
@@ -925,7 +968,7 @@ shiny_drive_server <- function(input,
   
   
   
-  # Edit file
+  
   observeEvent(input$edit_file, {
     cpt <- count_file_load() + 1
     count_file_load(cpt)
@@ -1000,7 +1043,7 @@ shiny_drive_server <- function(input,
       dir <- save_dir
     }
     
-    # Write yaml edited
+    
     removeModal()
     
     ctrl_edit <- tryCatch({
@@ -1015,7 +1058,7 @@ shiny_drive_server <- function(input,
     error = function(e){
       showModal(
         modalDialog(
-          title = "Error editing file",
+          title = file_translate[file_translate$ID == 59, get_lan()],
           easyClose = TRUE,
           footer = NULL,
           e$message
@@ -1024,10 +1067,10 @@ shiny_drive_server <- function(input,
     })
     
   }, ignoreInit = TRUE)
-  # End edit file
   
   
-  # Suppress file
+  
+  
   file_to_remove <- reactive({
     dt <- all_files()
     all_names <- uniquenames()
@@ -1083,7 +1126,7 @@ shiny_drive_server <- function(input,
     error = function(e){
       showModal(
         modalDialog(
-          title = "Error removing file",
+          title = file_translate[file_translate$ID == 60, get_lan()],
           easyClose = TRUE,
           footer = NULL,
           e$message
@@ -1093,47 +1136,26 @@ shiny_drive_server <- function(input,
     
   }, ignoreInit = TRUE)
   
-  # Remove multiple
+  
   r_selected_files <- callModule(module = input_checkbox, id = "remove_mult_files")
   
-  # Mettre à jour les labels des boutons selon la langue
   observe({
     file_translate <- get_file_translate()
     req(file_translate)
     
-    # ID 50 pour "Tout sélectionner" et ID 51 pour "Tout désélectionner"
-    # Si ces IDs n'existent pas encore, utilisez des valeurs par défaut
-    select_all_text <- tryCatch({
-      file_translate[file_translate$ID == 50, get_lan()]
-    }, error = function(e) {
-      if(get_lan() == "FR") "Tout sélectionner" 
-      else if(get_lan() == "CN") "全选" 
-      else "Select all"
-    })
+    select_all_text <- file_translate[file_translate$ID == 50, get_lan()]
+
     
-    deselect_all_text <- tryCatch({
-      file_translate[file_translate$ID == 51, get_lan()]
-    }, error = function(e) {
-      if(get_lan() == "FR") "Tout désélectionner" 
-      else if(get_lan() == "CN") "取消全选" 
-      else "Deselect all"
-    })
-    
-    # Nouveau: label pour "Tout télécharger"
-    download_all_text <- tryCatch({
-      file_translate[file_translate$ID == 52, get_lan()]
-    }, error = function(e) {
-      if(get_lan() == "FR") "Tout télécharger" 
-      else if(get_lan() == "CN") "全部下载" 
-      else "Download all"
-    })
-    
+    deselect_all_text <- file_translate[file_translate$ID == 51, get_lan()]
+
+    download_all_text <- file_translate[file_translate$ID == 52, get_lan()]
+
     updateActionButton(session, "select_all_files", label = select_all_text)
     updateActionButton(session, "deselect_all_files", label = deselect_all_text)
     updateActionButton(session, "download_all_files_top", label = download_all_text)
   })
   
-  # Bouton "Tout télécharger" en haut
+  
   observeEvent(input$download_all_files_top, {
     file_translate <- get_file_translate()
     req(all_files())
@@ -1143,15 +1165,17 @@ shiny_drive_server <- function(input,
       p(paste0(nrow(all_files()), " ", if(get_lan() == "FR") "fichier(s)" else if(get_lan() == "CN") "个文件" else "file(s)")),
       footer = tagList(
         modalButton(file_translate[file_translate$ID == 7, get_lan()]),
-        downloadButton(
-          ns("downloaded_all_files"),
-          file_translate[file_translate$ID == 35, get_lan()]
-        )
+          downloadButton(
+            ns("downloaded_all_files"),
+            file_translate[file_translate$ID == 35, get_lan()]
+            )
+        
       )
     ))
   }, ignoreInit = TRUE)
   
-  # Fonction pour récupérer les chemins des fichiers sélectionnés
+
+
   download_selected_files_rf <- reactive({
     req(files_to_remove())
     
@@ -1166,7 +1190,7 @@ shiny_drive_server <- function(input,
       base_dir <- save_dir
     }
     
-    # Récupérer les fichiers sélectionnés avec recorded_name
+    
     all_files_data <- all_files()
     selected_ids <- files_to_remove()$id
     
@@ -1175,14 +1199,14 @@ shiny_drive_server <- function(input,
       
       if(nrow(file_info) == 0) return(NULL)
       
-      # Utiliser file_path si disponible, sinon utiliser base_dir
+
       if(!is.null(file_info$file_path) && file_info$file_path != "" && !is.na(file_info$file_path)) {
         dir <- file.path(base_dir, file_info$file_path)
       } else {
         dir <- base_dir
       }
       
-      # Essayer avec recorded_name puis avec name simple
+
       fp_recorded <- file.path(dir, file_info$recorded_name)
       fp_simple <- file.path(dir, file_info$name)
       
@@ -1191,7 +1215,7 @@ shiny_drive_server <- function(input,
       } else if(file.exists(fp_simple)) {
         fp <- fp_simple
       } else {
-        fp <- fp_recorded  # Fallback
+        fp <- fp_recorded  
       }
       
       names(fp) <- paste0(tools::file_path_sans_ext(file_info$name), ".",
@@ -1206,9 +1230,10 @@ shiny_drive_server <- function(input,
       paste0("shinydrive_files_", format(Sys.time(), format = "%Y%m%d_%H%M%S"), ".zip")
     },
     content = function(file) {
-      fp <- download_selected_files_rf()  # Utiliser la nouvelle fonction pour les fichiers sélectionnés
+      fp <- download_selected_files_rf()  
       
       if(length(fp) == 0) {
+        download_in_progress(FALSE)
         return(NULL)
       }
       
@@ -1226,32 +1251,35 @@ shiny_drive_server <- function(input,
       
       tmp_fp <- tmp_fp[!sapply(tmp_fp, is.null)]
       
-      removeModal()
+      
       
       if(length(tmp_fp) > 0) {
         zip::zip(zipfile = file, files = tmp_fp, mode = "cherry-pick")
       }
       
       tryCatch({file.remove(tmp_fp)}, error = function(e) NULL, warning = function(e) NULL)
+      
+      download_in_progress(FALSE)
+
     }
   )
   
-  # Bouton "Tout sélectionner" - Version avec JavaScript
+
   observeEvent(input$select_all_files, {
     req(all_files())
     
-    # Utiliser JavaScript pour cocher toutes les checkboxes du DataTable
+    
     session$sendCustomMessage(
       type = 'selectAllCheckboxes',
       message = list(select = TRUE)
     )
   })
   
-  # Bouton "Tout désélectionner" - Version avec JavaScript
+  
   observeEvent(input$deselect_all_files, {
     req(all_files())
     
-    # Utiliser JavaScript pour décocher toutes les checkboxes du DataTable
+
     session$sendCustomMessage(
       type = 'selectAllCheckboxes',
       message = list(select = FALSE)
@@ -1259,7 +1287,7 @@ shiny_drive_server <- function(input,
   })
   
   
-  # # # Remove all selected files
+
   output$supress_all <- renderUI({
     r_selected_files()
     file_translate <- get_file_translate()
@@ -1348,7 +1376,7 @@ shiny_drive_server <- function(input,
       error = function(e){
         showModal(
           modalDialog(
-            title = "Error removing file",
+            title = file_translate[file_translate$ID == 60, get_lan()],
             easyClose = TRUE,
             footer = NULL,
             e$message
@@ -1358,7 +1386,7 @@ shiny_drive_server <- function(input,
     }
   }, ignoreInit = TRUE)
   
-  #  And download all files
+
   observeEvent(input$download_delected_files, {
     file_translate <- get_file_translate()
     
@@ -1379,46 +1407,61 @@ shiny_drive_server <- function(input,
       ),
       footer = tagList(
         modalButton(file_translate[file_translate$ID == 7, get_lan()]),
-        downloadButton(
-          ns("downloaded_file"),
-          file_translate[file_translate$ID == 35, get_lan()]
+        
+        tags$div(
+          onclick = sprintf("Shiny.setInputValue('%s', Math.random(), {priority: 'event'})", ns("download_clicked_multiple")),
+          downloadButton(
+            ns("downloaded_file"),
+            file_translate[file_translate$ID == 35, get_lan()]
+          )
         )
+        
       )
     ))
   }, ignoreInit = TRUE)
   
-  # Bouton "Tout télécharger" en haut
+  observeEvent(input$download_clicked_multiple, {
+    download_in_progress(TRUE)
+    removeModal()
+  }, ignoreInit = TRUE)
+  
+
   observeEvent(input$download_all_files_top, {
     file_translate <- get_file_translate()
     req(all_files())
     
     if(nrow(all_files()) == 0) {
       showModal(modalDialog(
-        title = "Aucun fichier",
-        "Il n'y a aucun fichier à télécharger.",
+        title = file_translate[file_translate$ID == 54, get_lan()],  
+        file_translate[file_translate$ID == 55, get_lan()],  
         easyClose = TRUE,
-        footer = modalButton("OK")
+        footer = modalButton(file_translate[file_translate$ID == 56, get_lan()])  
       ))
       return(NULL)
     }
     
     showModal(modalDialog(
       title = div(file_translate[file_translate$ID == 34, get_lan()], style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
-      p(paste0(nrow(all_files()), " ", 
-               if(get_lan() == "FR") "fichier(s) seront téléchargés" 
-               else if(get_lan() == "CN") "个文件将被下载" 
-               else "file(s) will be downloaded")),
+      p(paste0(nrow(all_files()), " ", file_translate[file_translate$ID == 57, get_lan()])),  
       footer = tagList(
         modalButton(file_translate[file_translate$ID == 7, get_lan()]),
-        downloadButton(
-          ns("downloaded_all_files"),
-          file_translate[file_translate$ID == 35, get_lan()]
+        tags$div(
+          onclick = sprintf("Shiny.setInputValue('%s', Math.random(), {priority: 'event'})", ns("download_clicked_all")),
+          downloadButton(
+            ns("downloaded_all_files"),
+            file_translate[file_translate$ID == 35, get_lan()]
+          )
         )
       )
     ))
   }, ignoreInit = TRUE)
   
-  # Fonction pour télécharger tous les fichiers
+  observeEvent(input$download_clicked_all, {
+    download_in_progress(TRUE)
+    removeModal()
+  }, ignoreInit = TRUE)
+  
+
   download_all_files_rf <- reactive({
     req(all_files())
     
@@ -1436,7 +1479,7 @@ shiny_drive_server <- function(input,
     sapply(1:nrow(all_files()), function(i){
       download_file_r <- all_files()[i, ]
       
-      # Utiliser file_path si disponible, sinon utiliser base_dir
+
       if(!is.null(download_file_r$file_path) && download_file_r$file_path != "" && !is.na(download_file_r$file_path)) {
         dir <- file.path(base_dir, download_file_r$file_path)
       } else {
@@ -1444,7 +1487,7 @@ shiny_drive_server <- function(input,
       }
       
 
-      # Essayer avec recorded_name puis avec name simple
+      
       fp_recorded <- file.path(dir, download_file_r$recorded_name)
       fp_simple <- file.path(dir, download_file_r$name)
       
@@ -1453,7 +1496,7 @@ shiny_drive_server <- function(input,
       } else if(file.exists(fp_simple)) {
         fp <- fp_simple
       } else {
-        fp <- fp_recorded  # Fallback
+        fp <- fp_recorded  
       }
       
       names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name), ".",
@@ -1470,6 +1513,7 @@ shiny_drive_server <- function(input,
       fp <- download_all_files_rf()
       
       if(length(fp) == 0) {
+        download_in_progress(FALSE)
         return(NULL)
       }
       
@@ -1486,14 +1530,14 @@ shiny_drive_server <- function(input,
       })
       
       tmp_fp <- tmp_fp[!sapply(tmp_fp, is.null)]
-      
-      removeModal()
+
       
       if(length(tmp_fp) > 0) {
         zip::zip(zipfile = file, files = tmp_fp, mode = "cherry-pick")
       }
       
       tryCatch({file.remove(tmp_fp)}, error = function(e) NULL, warning = function(e) NULL)
+      download_in_progress(FALSE)
     }
   )
 }
