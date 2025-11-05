@@ -21,7 +21,7 @@ shiny_drive_server(
     "shinydrive"), sep = ";", encoding = "UTF-8", check.names = FALSE),
   datatable_options = list(),
   yml = "files_desc.yaml",
-  date_time_format = "\%Y\%m\%d_\%H\%M\%s",
+  date_time_format = "\%Y\%m\%d_\%H\%M\%S",
   decreasing = TRUE,
   intervalMillis = 5000
 )

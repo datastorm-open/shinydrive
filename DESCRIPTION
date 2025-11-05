@@ -4,13 +4,14 @@ Title: File Sharing Shiny Module
 Version: 0.1.5
 Authors@R: c(
     person("Benoit", "Thieurmel", email = "bthieurmel@gmail.com", role = c("aut", "cre")),
-    person("Thibaut", "Dubois", email = "thibaut.dubois@datastorm.fr", role = c("aut"))
+    person("Thibaut", "Dubois", email = "thibaut.dubois@datastorm.fr", role = c("aut")),
+    person("Jérémy", "Boussaguet", email = "jeremy.boussaguet@quadratic-labs.com" , role = ("ctb"))
     )
 Description: Shiny module for easily sharing files between users. Admin can add, remove, edit and download file.
     User can only download file. It's also possible to manage files using R functions directly.
 License: GPL-3
 Encoding: UTF-8
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.3
 Imports: 
     htmltools,
     shiny,

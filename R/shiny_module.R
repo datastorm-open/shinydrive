@@ -11,15 +11,15 @@ shiny_drive_ui <- function(id){
     singleton(tags$head(
       tags$script(src = "shinydrive/shiny_utils_sfm.js"),
       tags$script("
-        // Handler pour sélectionner/désélectionner toutes les checkboxes
+        // Handler pour selectionner/deselectionner toutes les checkboxes
         Shiny.addCustomMessageHandler('selectAllCheckboxes', function(message) {
           // Trouver toutes les checkboxes dans le DataTable
           var checkboxes = $('table.dataTable input[type=\"checkbox\"]');
           
-          // Mettre à jour toutes les checkboxes
+          // Mettre a jour toutes les checkboxes
           checkboxes.each(function() {
             $(this).prop('checked', message.select);
-            // Déclencher l'événement change pour que Shiny soit notifié
+            // Declencher l'evenement change pour que Shiny soit notifie
             $(this).trigger('change');
           });
         });
@@ -1162,7 +1162,7 @@ shiny_drive_server <- function(input,
     
     showModal(modalDialog(
       title = div(file_translate[file_translate$ID == 34, get_lan()], style = "color: #337ab7; font-size: 25px; font-weight: bold;"),
-      p(paste0(nrow(all_files()), " ", if(get_lan() == "FR") "fichier(s)" else if(get_lan() == "CN") "个文件" else "file(s)")),
+      p(paste0(nrow(all_files()), " ", file_translate[file_translate$ID == 61, get_lan()])),
       footer = tagList(
         modalButton(file_translate[file_translate$ID == 7, get_lan()]),
           downloadButton(

@@ -173,6 +173,7 @@ edit_file_in_dir <- function(id,
     } else {
       date_time <- NULL
       extension <- NULL
+      file_path <- NULL
 
       if(!is.null(name) && name != yml_info[[id]]$name){
         old_path <- file.path(dir, paste0(yml_info[[id]]$name, "_", yml_info[[id]]$date_upload, ".", yml_info[[id]]$extension))
@@ -494,8 +495,8 @@ init_config <- function(base_dir,
       chemin_relatif <- "root"
     }
     
-    message(paste("\n📁", chemin_relatif))
-    message(paste("  →", length(files_for_this_dir), "total files found (including sub-folders)"))
+    message(paste("\n Folder ", chemin_relatif))
+    message(paste(" -->", length(files_for_this_dir), "total files found (including sub-folders)"))
     
     config_path <- file.path(dir_path, config_file)
     
@@ -540,16 +541,16 @@ init_config <- function(base_dir,
    
     tryCatch({
       yaml::write_yaml(yaml_content, config_path)
-      message(paste("  ✓ YAML updated:", config_path))
+      message(paste(" OK - YAML updated:", config_path))
       processed_count <- processed_count + 1
     }, error = function(e) {
-      warning(paste("  ✗ Could not create YAML:", e$message))
+      warning(paste("  X - Could not create YAML:", e$message))
     })
   }
   
   message(paste("\n=== Finish ==="))
-  message(paste("✓", processed_count, "YAML updated"))
-  message(paste("✓", length(all_files_info), "total files"))
+  message(paste("OK -", processed_count, "YAML updated"))
+  message(paste("OK -", length(all_files_info), "total files"))
   
   return(invisible(list(
     processed_dirs = processed_count,
@@ -564,10 +565,12 @@ init_config <- function(base_dir,
 #' @param confirm With or without confirmation before deleting
 #' @param dry_run simulation (no deletion)
 #'
-#' @returns
+#' @returns delete all yaml files
 #' @export
 #'
 #' @examples
+#' delete_config("~/shinydrive/tests", config_file = "files_desc.yaml")
+#' 
 delete_config <- function(base_dir,
                           config_file = "files_desc.yaml",
                           confirm = TRUE,
@@ -618,12 +621,12 @@ delete_config <- function(base_dir,
     cat("Fils that would be deleted:\n\n")
     
     if (nb_maitre > 0) {
-      cat("📁 Root YAML:\n")
+      cat("Root YAML:\n")
       cat("  ", yaml_maitre, "\n\n")
     }
     
     if (nb_locaux > 0) {
-      cat("📁 sub-folders YAML (", nb_locaux, "):\n")
+      cat("Sub-folders YAML (", nb_locaux, "):\n")
       for (i in seq_along(yaml_locaux)) {
 
         chemin_rel <- gsub(paste0("^", base_dir, "/?"), "", yaml_locaux[i])
@@ -631,7 +634,7 @@ delete_config <- function(base_dir,
       }
     }
     
-    cat("\n✓ Dry-run over, no file were deleted.\n")
+    cat("\n OK - Dry-run over, no file were deleted.\n")
     cat("To really delete files use: dry_run = FALSE\n")
     
     return(invisible(nb_total))
@@ -639,13 +642,13 @@ delete_config <- function(base_dir,
   
 
   if (confirm) {
-    cat("⚠️  CAREFUL ! This cannot be reversed !\n")
-    cat("⚠️  ", nb_total, "files will be definitively deleted.\n\n")
+    cat("(!) CAREFUL ! This cannot be reversed !\n")
+    cat(" (!)", nb_total, "files will be definitively deleted.\n\n")
     
     reponse <- readline(prompt = "Do you want to proceed ? (yes/no) : ")
     
     if (tolower(trimws(reponse)) != "yes") {
-      cat("\n❌ Cancelled, no file were deleted.\n")
+      cat("\n X - Cancelled, no file were deleted.\n")
       return(invisible(0))
     }
     cat("\n")
@@ -662,10 +665,10 @@ delete_config <- function(base_dir,
     cat("Deleting root YAML... ")
     tryCatch({
       file.remove(yaml_maitre)
-      cat("✓\n")
+      cat("OK \n")
       nb_supprimes <- nb_supprimes + 1
     }, error = function(e) {
-      cat("✗ Error:", e$message, "\n")
+      cat("X Error:", e$message, "\n")
       nb_erreurs <- nb_erreurs + 1
     })
   }
@@ -679,10 +682,10 @@ delete_config <- function(base_dir,
       
       tryCatch({
         file.remove(yaml_locaux[i])
-        cat("✓\n")
+        cat("OK \n")
         nb_supprimes <- nb_supprimes + 1
       }, error = function(e) {
-        cat("✗ Error:", e$message, "\n")
+        cat("X - Error:", e$message, "\n")
         nb_erreurs <- nb_erreurs + 1
       })
     }
@@ -699,11 +702,11 @@ delete_config <- function(base_dir,
   cat("========================================\n")
   
   if (nb_supprimes == nb_total) {
-    cat("\n✓ All YAML files were deleted.\n")
+    cat("\n All YAML files were deleted.\n")
   } else if (nb_supprimes > 0) {
-    cat("\n⚠ Only some YAML files were deleted. Please check the errors above.\n")
+    cat("\n (!) Only some YAML files were deleted. Please check the errors above.\n")
   } else {
-    cat("\n❌ No files deleted. Please check the errors above. \n")
+    cat("\n X - No files deleted. Please check the errors above. \n")
   }
   
   return(invisible(nb_supprimes))
@@ -711,17 +714,19 @@ delete_config <- function(base_dir,
 
 
 
-#' Delete config files older than specific number of days
+#' Delete config files older than a specific number of days
 #'
 #' @param base_dir base folder
 #' @param days number of days to check the age of files we want to delete
 #' @param config_file name of YAML files
 #' @param dry_run Simulation
 #'
-#' @returns
+#' @returns delete old config files from folder
 #' @export
 #'
 #' @examples
+#' delete_old_config("~/shinydrive/tests", days = 60, config_file = "files_desc.yaml")
+#' 
 delete_old_config <- function(base_dir, 
                               days = 30,
                               config_file = "files_desc.yaml",
@@ -733,7 +738,7 @@ delete_old_config <- function(base_dir,
   all_yamls <- c(
     list.files(base_dir, pattern = paste0("^", config_file, "$"), 
                recursive = TRUE, full.names = TRUE),
-    list.files(base_dir, pattern = paste0("^", master_config_file, "$"), 
+    list.files(base_dir, pattern = paste0("^", config_file, "$"), 
                recursive = TRUE, full.names = TRUE)
   )
   
@@ -789,7 +794,7 @@ delete_old_config <- function(base_dir,
     })
   }
   
-  cat("\n✓", nb_supprimes, "files deleted.\n")
+  cat("\n OK - ", nb_supprimes, "files deleted.\n")
   return(invisible(nb_supprimes))
 }
 
