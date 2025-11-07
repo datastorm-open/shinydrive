@@ -136,71 +136,109 @@ add_file_in_dir <- function(file,
 #' @rdname file_manager
 #' @export
 edit_file_in_dir <- function(id,
-                            dir,
-                            yml,
-                            name = NULL,
-                            description = NULL,
-                            file = NULL, 
-                            date_time_format = "%Y%m%d_%H%M%S"){
-
+                             dir,
+                             yml,
+                             name = NULL,
+                             description = NULL,
+                             file = NULL, 
+                             date_time_format = "%Y%m%d_%H%M%S"){
+  
   if(!dir.exists(dir)) stop("Directory '", dir, "' not found")
   if(!file.exists(yml)) stop("YAML '", yml, "' not found")
-
-  date_time <- format(Sys.time(), format = date_time_format)
   
-  # Read yaml
+  new_date_time <- format(Sys.time(), format = date_time_format)
+  
   yml_info <- yaml::read_yaml(yml)
-
+  
   if(!id %in% names(yml_info)){
     warning("No raw to edit")
     return(FALSE)
   } else {
+    
+
+    update_date <- FALSE
+    update_extension <- FALSE
+    update_size <- FALSE
+    new_size <- NULL
+    new_extension <- NULL
+
     if(!is.null(file)){
       
-      size <- file.info(file)$size
-      
+      new_size <- file.info(file)$size
+      new_extension <- tools::file_ext(file)
+
       if(is.null(name)){
         write_name <- yml_info[[id]]$name
       } else {
         write_name <- name
       }
+
       old_file <- file.path(dir, paste0(yml_info[[id]]$name, "_", yml_info[[id]]$date_upload, ".", yml_info[[id]]$extension))
-      if(file.exists(old_file)) file.remove(old_file)
+      if(file.exists(old_file)) {
+        file.remove(old_file)
+      }
 
-      extension <- tools::file_ext(file)
-
-      file.copy(file, file.path(dir, paste0(write_name, "_", date_time, ".", tools::file_ext(file))))
-
+      new_file_path <- file.path(dir, paste0(write_name, "_", new_date_time, ".", new_extension))
+      file.copy(file, new_file_path)
+      
+      update_date <- TRUE
+      update_extension <- TRUE
+      update_size <- TRUE
+      
     } else {
-      date_time <- NULL
-      extension <- NULL
-      file_path <- NULL
-
       if(!is.null(name) && name != yml_info[[id]]$name){
         old_path <- file.path(dir, paste0(yml_info[[id]]$name, "_", yml_info[[id]]$date_upload, ".", yml_info[[id]]$extension))
         new_path <- file.path(dir, paste0(name, "_", yml_info[[id]]$date_upload, ".", yml_info[[id]]$extension))
-        file.rename(old_path, new_path)
         
-        if(file.exists(new_path)){
-          size <- file.info(new_path)$size
+        if(file.exists(old_path)) {
+          file.rename(old_path, new_path)
+          
+          if(file.exists(new_path)){
+            new_size <- file.info(new_path)$size
+            update_size <- TRUE
           }
+        }
       }
     }
-
+    
     mod_list <- yml_info[[id]]
-    if(!is.null(name)) mod_list$name <- name
-    if(!is.null(date_time)) mod_list$date_upload <- date_time
-    if(!is.null(extension)) mod_list$extension <- extension
-    if(!is.null(description)) mod_list$description <- description
-    if(!is.null(file_path)) mod_list$file_path <- normalizePath(dir, winslash = "/")
-    if(!is.null(size)) mod_list$size <- size
+    
+    if(!is.null(name)) {
+      mod_list$name <- name
+    }
+    
+    if(update_date) {
+      mod_list$date_upload <- new_date_time
+    }
+    
+    if(update_extension) {
+      mod_list$extension <- new_extension
+    }
+    
+
+    if(!is.null(description)) {
+      mod_list$description <- description
+    } else {
+      if(is.null(mod_list$description)) {
+        mod_list$description <- ""
+      }
+    }
+    
+    if(update_size && !is.null(new_size)) {
+      mod_list$size <- new_size
+    }
+    
+    if(is.null(mod_list$file_path)) {
+      mod_list$file_path <- ""
+    }
+    
 
     yml_info[[id]] <- mod_list
     yaml::write_yaml(yml_info, yml)
-
+    
     TRUE
   }
-
+  
 }
 
 #' @rdname file_manager
