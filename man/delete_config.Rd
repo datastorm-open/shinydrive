@@ -27,6 +27,9 @@ delete all yaml files
 Delete all YAML files
 }
 \examples{
+\dontrun{
+\donttest{
 delete_config("~/shinydrive/tests", config_file = "files_desc.yaml")
-
+}
+}
 }

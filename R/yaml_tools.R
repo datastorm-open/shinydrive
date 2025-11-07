@@ -10,6 +10,7 @@
 #' @param recorded_name \code{logical} : add recorded name (with date_time extension) in output ?
 #' @param add_img \code{logical} : Use in shiny module for adding file extension img.
 #' @param img_size \code{integer} : Use in shiny module for adding file extension img.
+#' @param format_size \code{logical} : USer-friendly size format ?
 #' 
 #' @return These functions return a \code{logical} indicating if operation succeeded or not
 #' 
@@ -569,8 +570,11 @@ init_config <- function(base_dir,
 #' @export
 #'
 #' @examples
+#'\dontrun{
+#'\donttest{
 #' delete_config("~/shinydrive/tests", config_file = "files_desc.yaml")
-#' 
+#' }
+#' }
 delete_config <- function(base_dir,
                           config_file = "files_desc.yaml",
                           confirm = TRUE,

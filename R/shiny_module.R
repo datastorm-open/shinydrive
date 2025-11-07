@@ -157,6 +157,7 @@ shiny_drive_ui <- function(id){
 #' }
 #'
 #' @importFrom stats runif
+#' @importFrom utils packageVersion
 #'
 #' @rdname shiny_drive_module
 #'
