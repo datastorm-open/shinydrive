@@ -58,7 +58,7 @@ get_yaml_info(
 
 \item{img_size}{\code{integer} : Use in shiny module for adding file extension img.}
 
-\item{format_size}{\code{logical} : USer-friendly size format ?}
+\item{format_size}{\code{logical} : User-friendly size format ?}
 }
 \value{
 These functions return a \code{logical} indicating if operation succeeded or not

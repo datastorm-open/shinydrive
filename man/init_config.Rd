@@ -4,14 +4,21 @@
 \alias{init_config}
 \title{Create YAML configuration files recursively}
 \usage{
-init_config(base_dir, config_file = "files_desc.yaml", file_patterns = NULL)
+init_config(
+  base_dir,
+  config_file = "files_desc.yaml",
+  file_patterns = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
-\item{base_dir}{\code{character} Base directory path}
+\item{base_dir}{Base directory path}
 
-\item{config_file}{\code{character} YAML configuration file name}
+\item{config_file}{YAML configuration file name}
 
-\item{file_patterns}{\code{character} File patterns to match}
+\item{file_patterns}{File patterns to match}
+
+\item{verbose}{Display messages}
 }
 \value{
 Invisible count of processed directories

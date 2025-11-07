@@ -8,7 +8,8 @@ delete_config(
   base_dir,
   config_file = "files_desc.yaml",
   confirm = TRUE,
-  dry_run = FALSE
+  dry_run = FALSE,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ delete_config(
 \item{confirm}{With or without confirmation before deleting}
 
 \item{dry_run}{simulation (no deletion)}
+
+\item{verbose}{Display messages}
 }
 \value{
 delete all yaml files

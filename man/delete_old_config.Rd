@@ -8,7 +8,9 @@ delete_old_config(
   base_dir,
   days = 30,
   config_file = "files_desc.yaml",
-  dry_run = FALSE
+  confirm = TRUE,
+  dry_run = FALSE,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -18,7 +20,11 @@ delete_old_config(
 
 \item{config_file}{name of YAML files}
 
+\item{confirm}{With or without confirmation before deleting}
+
 \item{dry_run}{Simulation}
+
+\item{verbose}{Display messages}
 }
 \value{
 delete old config files from folder

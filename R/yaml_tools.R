@@ -597,7 +597,7 @@ init_config <- function(base_dir,
       size <- file_info$size
       
       
-      yaml_content[[file_id]] <- list(
+      yaml_content[[nom_sans_ext]] <- list(
         name = nom_sans_ext,
         date_upload = date_fichier,
         extension = extension,
