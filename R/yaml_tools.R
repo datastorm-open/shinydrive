@@ -10,7 +10,7 @@
 #' @param recorded_name \code{logical} : add recorded name (with date_time extension) in output ?
 #' @param add_img \code{logical} : Use in shiny module for adding file extension img.
 #' @param img_size \code{integer} : Use in shiny module for adding file extension img.
-#' @param format_size \code{logical} : USer-friendly size format ?
+#' @param format_size \code{logical} : User-friendly size format ?
 #' 
 #' @return These functions return a \code{logical} indicating if operation succeeded or not
 #' 
@@ -92,7 +92,7 @@ add_file_in_dir <- function(file,
     .add_file_in_yaml(yml, name = name, datetime = date_time,
                      extension = tools::file_ext(file),
                      description = description,
-                     file_path = normalizePath(dir, winslash = "/"),
+                     file_path = "",
                      size = file_size)
   }
   check_copy
@@ -295,7 +295,7 @@ get_yaml_info <- function(yml,
         }
       })
     }, error = function(e) {
-      warning(paste("Error extracting sizes:", e$message))
+      warning("Error extracting sizes:", e$message)
       rep(NA, length(yml_info))
     })
 
@@ -314,7 +314,7 @@ get_yaml_info <- function(yml,
           .format_file_size(s)
         })
       }, error = function(e) {
-        warning(paste("Error formatting sizes:", e$message))
+        warning("Error formatting sizes:", e$message)
         rep(NA, length(id))
       })
     } else {
@@ -326,7 +326,7 @@ get_yaml_info <- function(yml,
 
     
     if(length(sizes) != length(id)) {
-      warning(paste("Size mismatch: id has", length(id), "elements but sizes has", length(sizes)))
+      warning("Size mismatch: id has", length(id), "elements but sizes has", length(sizes))
       if(length(sizes) < length(id)) {
         sizes <- c(sizes, rep(NA, length(id) - length(sizes)))
       } else {
@@ -393,35 +393,157 @@ get_yaml_info <- function(yml,
   paste0(round(size, decimals), " ", units[power + 1])
 }
 
+
+
+#' Combine YAML files recursively from subdirectories
+#'
+#'
+#' @param base_dir Base directory path
+#' @param current_dir Current directory relative to base_dir (use "" for base_dir itself)
+#' @param config_file YAML configuration file name
+#' @param recorded_name  Add recorded name (with date_time extension) in output?
+#' @param date_time_format  DateTime format
+#' @param add_img Use in shiny module for adding file extension img
+#' @param img_size  Use in shiny module for adding file extension img
+#' @param format_size User-friendly size format?
+#'
+#' @return A data frame combining all YAML files with a 'subdir' column indicating relative path
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' # Get all files from base_dir and subdirectories
+#' all_files <- combine_yaml_recursive(
+#'   base_dir = "~/my_files",
+#'   current_dir = "",
+#'   config_file = "files_desc.yaml"
+#' )
+#' 
+#' # Get files from a specific subdirectory and its children
+#' subdir_files <- combine_yaml_recursive(
+#'   base_dir = "~/my_files",
+#'   current_dir = "projects/2024",
+#'   config_file = "files_desc.yaml"
+#' )
+#' }
+combine_yaml_recursive <- function(base_dir,
+                                   current_dir = "",
+                                   config_file = "files_desc.yaml",
+                                   recorded_name = TRUE,
+                                   date_time_format = "%Y%m%d_%H%M%S",
+                                   add_img = FALSE,
+                                   img_size = 30,
+                                   format_size = TRUE) {
+  
+  if (!dir.exists(base_dir)) {
+    stop("Directory '", base_dir, "' not found")
+  }
+  
+  if (current_dir == "" || current_dir == "/") {
+    full_current_dir <- base_dir
+    current_dir <- ""
+  } else {
+    full_current_dir <- file.path(base_dir, current_dir)
+  }
+  
+  if (!dir.exists(full_current_dir)) {
+    return(NULL)
+  }
+  
+ 
+  all_subdirs <- list.dirs(full_current_dir, recursive = TRUE, full.names = TRUE)
+  
+
+  all_dfs <- list()
+  global_id <- 1
+  
+  for (subdir_path in all_subdirs) {
+    yml_path <- file.path(subdir_path, config_file)
+    
+    if (file.exists(yml_path)) {
+      df <- get_yaml_info(
+        yml = yml_path,
+        recorded_name = recorded_name,
+        date_time_format = date_time_format,
+        add_img = add_img,
+        img_size = img_size,
+        format_size = format_size
+        )
+      
+      if (!is.null(df) && nrow(df) > 0) {
+        if (current_dir == "") {
+          relative_path <- gsub(paste0("^", normalizePath(base_dir, winslash = "/"), "/?"), "", 
+                                normalizePath(subdir_path, winslash = "/"))
+        } else {
+          relative_path <- gsub(paste0("^", normalizePath(full_current_dir, winslash = "/"), "/?"), "", 
+                                normalizePath(subdir_path, winslash = "/"))
+        }
+        
+        if (relative_path == "" || relative_path == normalizePath(subdir_path, winslash = "/")) {
+          relative_path <- ""
+        }
+        
+        df$original_id <- df$id
+        
+        df$id <- as.character(global_id:(global_id + nrow(df) - 1))
+        
+        global_id <- global_id + nrow(df)
+        
+        df$subdir <- relative_path
+        
+        df$full_dir_path <- normalizePath(subdir_path, winslash = "/")
+        df$yml_path <- yml_path
+        
+        all_dfs[[length(all_dfs) + 1]] <- df
+      }
+    }
+  }
+  
+  if (length(all_dfs) == 0) {
+    return(NULL)
+  }
+  
+  combined_df <- do.call(rbind, all_dfs)
+  rownames(combined_df) <- NULL
+  
+  return(combined_df)
+}
+
+
+
+
 #' Create YAML configuration files recursively
 #'
-#' @param base_dir \code{character} Base directory path
-#' @param config_file \code{character} YAML configuration file name
-#' @param file_patterns \code{character} File patterns to match
+#' @param base_dir  Base directory path
+#' @param config_file YAML configuration file name
+#' @param file_patterns File patterns to match
+#' @param verbose Display messages
 #'
 #' @return Invisible count of processed directories
 #' @export
 
 init_config <- function(base_dir,
                         config_file = "files_desc.yaml",
-                        file_patterns = NULL) {
+                        file_patterns = NULL,
+                        verbose = TRUE) {
   
   if (!dir.exists(base_dir)) {
-    stop(paste("Folder ", base_dir, "does not exist"))
+    stop("Folder ", base_dir, "does not exist")
   }
   
   
   base_dir <- normalizePath(base_dir, winslash = "/", mustWork = TRUE)
   
-  message(paste("\n=== Recursive scan of :", base_dir, "==="))
+  if (verbose) message("=== Recursive scan of :", base_dir, "===")
   
   
   all_dirs <- list.dirs(base_dir, recursive = TRUE, full.names = TRUE)
   
-  message(paste("Total folders found:", length(all_dirs)))
+  if (verbose) message("Total folders found:", length(all_dirs))
   
-
-  all_files_info <- list()
+  
+  processed_count <- 0
+  total_files <- 0
   
   for (dir_path in all_dirs) {
     
@@ -443,6 +565,21 @@ init_config <- function(base_dir,
     }
     
     
+
+    chemin_relatif <- gsub(paste0("^", base_dir, "/?"), "", dir_path)
+    if (chemin_relatif == "") {
+      chemin_relatif <- "root"
+    }
+    
+    if (verbose) {
+      message("\nFolder: ", chemin_relatif)
+      message(" --> ", length(files), " files found in this folder")
+    }
+    
+    config_path <- file.path(dir_path, config_file)
+    
+    yaml_content <- list()
+    
     for (file_path in files) {
       
       file_name <- basename(file_path)
@@ -458,106 +595,48 @@ init_config <- function(base_dir,
       
       description <- gsub("_", " ", nom_sans_ext)
       size <- file_info$size
-      file_path <- normalizePath(dir_path, winslash = "/")
       
       
-      all_files_info[[length(all_files_info) + 1]] <- list(
+      yaml_content[[file_id]] <- list(
         name = nom_sans_ext,
-        date_upload = date_fichier, 
+        date_upload = date_fichier,
         extension = extension,
         description = description,
         size = size,
-        file_path = file_path,
-        parent_dir = dir_path
+        file_path = ""
       )
+      
+      total_files <- total_files + 1
+      
+    }
+    
+    
+    if (length(yaml_content) > 0) {
+      yaml_content <- yaml_content[order(names(yaml_content))]
+      tryCatch({
+        yaml::write_yaml(yaml_content, config_path)
+        if (verbose) message(" OK - YAML updated: ", config_path)
+        processed_count <- processed_count + 1
+      }, error = function(e) {
+        warning("  X - Could not create YAML: ", e$message)
+      })
     }
   }
   
-  message(paste("Files found:", length(all_files_info)))
-  
-
-  processed_count <- 0
-  
-  for (dir_path in all_dirs) {
-    
-    
-    files_for_this_dir <- Filter(function(f) {
-      
-      startsWith(f$parent_dir, dir_path)
-    }, all_files_info)
-    
-    if (length(files_for_this_dir) == 0) {
-      next
-    }
-    
-   
-    chemin_relatif <- gsub(paste0("^", base_dir, "/?"), "", dir_path)
-    if (chemin_relatif == "") {
-      chemin_relatif <- "root"
-    }
-    
-    message(paste("\n Folder ", chemin_relatif))
-    message(paste(" -->", length(files_for_this_dir), "total files found (including sub-folders)"))
-    
-    config_path <- file.path(dir_path, config_file)
-    
-    
-    yaml_content <- list()
-    
-    for (file_entry in files_for_this_dir) {
-      
-      relative_subdir <- gsub(paste0("^", dir_path, "/?"), "", file_entry$parent_dir)
-      if (relative_subdir == "") relative_subdir <- NULL
-      
-      
-     
-      file_id <- file_entry$name
-      
-      if (!is.null(relative_subdir)) {
-
-        yaml_content[[file_id]] <- list(
-          name = file_entry$name,
-          date_upload = file_entry$date_upload,
-          extension = file_entry$extension,
-          description = file_entry$description,
-          size = file_entry$size,
-          file_path = relative_subdir  
-        )
-      } else {
-  
-        yaml_content[[file_id]] <- list(
-          name = file_entry$name,
-          date_upload = file_entry$date_upload,
-          extension = file_entry$extension,
-          description = file_entry$description,
-          size = file_entry$size,
-          file_path = ""
-        )
-      }
-    }
-    
-   
-    yaml_content <- yaml_content[order(names(yaml_content))]
-    
-   
-    tryCatch({
-      yaml::write_yaml(yaml_content, config_path)
-      message(paste(" OK - YAML updated:", config_path))
-      processed_count <- processed_count + 1
-    }, error = function(e) {
-      warning(paste("  X - Could not create YAML:", e$message))
-    })
+  if (verbose) {
+    message("=== Finished ===")
+    message("OK - ", processed_count, " YAML files created/updated")
+    message("OK - ", total_files, " total files processed")
   }
-  
-  message(paste("\n=== Finish ==="))
-  message(paste("OK -", processed_count, "YAML updated"))
-  message(paste("OK -", length(all_files_info), "total files"))
   
   return(invisible(list(
     processed_dirs = processed_count,
-    total_files = length(all_files_info)
+    total_files = total_files
   )))
 }
+
+
+
 
 #' Delete all YAML files
 #'
@@ -565,6 +644,7 @@ init_config <- function(base_dir,
 #' @param config_file  YAML files names
 #' @param confirm With or without confirmation before deleting
 #' @param dry_run simulation (no deletion)
+#' @param verbose Display messages
 #'
 #' @returns delete all yaml files
 #' @export
@@ -578,22 +658,25 @@ init_config <- function(base_dir,
 delete_config <- function(base_dir,
                           config_file = "files_desc.yaml",
                           confirm = TRUE,
-                          dry_run = FALSE) {
+                          dry_run = FALSE,
+                          verbose = TRUE) {
   
-
+  
   if (!dir.exists(base_dir)) {
-    stop(paste("Folder ", base_dir, "not found."))
+    stop("Folder ", base_dir, "not found.")
   }
   
-  cat("========================================\n")
-  cat("DELETING YAML\n")
-  cat("========================================\n\n")
+  if (verbose) {
+    message("========================================")
+    message("DELETING YAML")
+    message("========================================")
+    
+    message("Target Folder:", base_dir)
+    message("Yaml to delete:")
+    message("  -", config_file, "(in all sub-folders)")
+  }
   
-  cat("Target Folder:", base_dir, "\n")
-  cat("Yaml to delete:\n")
-  cat("  -", config_file, "(in all sub-folders)\n")
   
-
   yaml_locaux <- list.files(
     path = base_dir,
     pattern = paste0("^", config_file, "$"),
@@ -601,116 +684,123 @@ delete_config <- function(base_dir,
     full.names = TRUE
   )
   
-
+  
   yaml_maitre <- file.path(base_dir, config_file)
   
- 
+  
   nb_locaux <- length(yaml_locaux)
   nb_maitre <- if (file.exists(yaml_maitre)) 1 else 0
   nb_total <- nb_locaux + nb_maitre
   
-  cat("Files found:\n")
-  cat("  - sub-folders YAML:", nb_locaux, "\n")
-  cat("  - root YAML:", nb_maitre, "\n")
-  cat("  - TOTAL:", nb_total, "\n\n")
+  if (verbose) {
+    message("Files found:")
+    message("  - sub-folders YAML:", nb_locaux)
+    message("  - root YAML:", nb_maitre)
+    message("  - TOTAL:", nb_total)
+  }
   
   if (nb_total == 0) {
-    cat("No YAML found, nothing to delete.\n")
+    if (verbose) message("No YAML found, nothing to delete")
     return(invisible(0))
   }
   
   # Mode dry-run
   if (dry_run) {
-    cat("DRY-RUN MODE (Only a simulation, no files deleted")
-    cat("Fils that would be deleted:\n\n")
-    
-    if (nb_maitre > 0) {
-      cat("Root YAML:\n")
-      cat("  ", yaml_maitre, "\n\n")
-    }
-    
-    if (nb_locaux > 0) {
-      cat("Sub-folders YAML (", nb_locaux, "):\n")
-      for (i in seq_along(yaml_locaux)) {
-
-        chemin_rel <- gsub(paste0("^", base_dir, "/?"), "", yaml_locaux[i])
-        cat("  ", i, ".", chemin_rel, "\n")
+    if (verbose) {
+      message("DRY-RUN MODE (Only a simulation, no files deleted")
+      message("Fils that would be deleted:")
+      
+      if (nb_maitre > 0) {
+        message("Root YAML:")
+        message("  ", yaml_maitre)
       }
+      
+      if (nb_locaux > 0) {
+        message("Sub-folders YAML (", nb_locaux, "):")
+        for (i in seq_along(yaml_locaux)) {
+          
+          chemin_rel <- gsub(paste0("^", base_dir, "/?"), "", yaml_locaux[i])
+          message("  ", i, ".", chemin_rel)
+        }
+      }
+      
+      message("OK - Dry-run over, no file were deleted.")
+      message("To really delete files use: dry_run = FALSE")
     }
-    
-    cat("\n OK - Dry-run over, no file were deleted.\n")
-    cat("To really delete files use: dry_run = FALSE\n")
     
     return(invisible(nb_total))
   }
   
-
+  
   if (confirm) {
-    cat("(!) CAREFUL ! This cannot be reversed !\n")
-    cat(" (!)", nb_total, "files will be definitively deleted.\n\n")
+    if (verbose) {
+      message("(!) CAREFUL ! This cannot be reversed !")
+      message(" (!)", nb_total, "files will be definitively deleted.")
+    }
     
     reponse <- readline(prompt = "Do you want to proceed ? (yes/no) : ")
     
     if (tolower(trimws(reponse)) != "yes") {
-      cat("\n X - Cancelled, no file were deleted.\n")
+      if (verbose) message("X - Cancelled, no file were deleted.")
       return(invisible(0))
     }
-    cat("\n")
   }
   
-
-  cat("Deleting...\n\n")
+  
+  if (verbose) message("Deleting...")
   
   nb_supprimes <- 0
   nb_erreurs <- 0
   
-
+  
   if (nb_maitre > 0) {
-    cat("Deleting root YAML... ")
+    if (verbose) message("Deleting root YAML... ")
     tryCatch({
       file.remove(yaml_maitre)
-      cat("OK \n")
+      if (verbose) message("OK")
       nb_supprimes <- nb_supprimes + 1
     }, error = function(e) {
-      cat("X Error:", e$message, "\n")
+      if (verbose) message("X Error:", e$message)
       nb_erreurs <- nb_erreurs + 1
     })
   }
   
-
+  
   if (nb_locaux > 0) {
-    cat("Deleteing sub-folders YAML...\n")
+    if (verbose) message("Deleteing sub-folders YAML...")
     for (i in seq_along(yaml_locaux)) {
-      chemin_rel <- gsub(paste0("^", base_dir, "/?"), "", yaml_locaux[i])
-      cat("  ", i, "/", nb_locaux, " ", chemin_rel, "... ")
+      chemin_rel <- gsub(paste0("^", base_dir, "/?"), " ", yaml_locaux[i])
+      if (verbose) message( i, "/", nb_locaux, " ", chemin_rel, "... ")
       
       tryCatch({
         file.remove(yaml_locaux[i])
-        cat("OK \n")
+        if (verbose) message("OK")
         nb_supprimes <- nb_supprimes + 1
       }, error = function(e) {
-        cat("X - Error:", e$message, "\n")
+        if (verbose) message("X - Error:", e$message)
         nb_erreurs <- nb_erreurs + 1
       })
     }
   }
   
-
-  cat("\n========================================\n")
-  cat("SUMMARY\n")
-  cat("========================================\n")
-  cat("Files deleted:", nb_supprimes, "/", nb_total, "\n")
-  if (nb_erreurs > 0) {
-    cat("Errors:", nb_erreurs, "\n")
-  }
-  cat("========================================\n")
   
-  if (nb_supprimes == nb_total) {
-    cat("\n All YAML files were deleted.\n")
-  } else if (nb_supprimes > 0) {
-    cat("\n (!) Only some YAML files were deleted. Please check the errors above.\n")
-  } else {
-    cat("\n X - No files deleted. Please check the errors above. \n")
+  if (verbose) {
+    message("========================================")
+    message("SUMMARY")
+    message("========================================")
+    message("Files deleted:", nb_supprimes, "/", nb_total)
+    if (nb_erreurs > 0) {
+      message("Errors:", nb_erreurs)
+    }
+    message("========================================")
+    
+    if (nb_supprimes == nb_total) {
+      message(" All YAML files were deleted.")
+    } else if (nb_supprimes > 0) {
+      message("(!) Only some YAML files were deleted. Please check the errors above.")
+    } else {
+      message("X - No files deleted. Please check the errors above.")
+    }
   }
   
   return(invisible(nb_supprimes))
@@ -723,7 +813,9 @@ delete_config <- function(base_dir,
 #' @param base_dir base folder
 #' @param days number of days to check the age of files we want to delete
 #' @param config_file name of YAML files
+#' @param confirm With or without confirmation before deleting
 #' @param dry_run Simulation
+#' @param verbose Display messages
 #'
 #' @returns delete old config files from folder
 #' @export
@@ -734,11 +826,13 @@ delete_config <- function(base_dir,
 delete_old_config <- function(base_dir, 
                               days = 30,
                               config_file = "files_desc.yaml",
-                              dry_run = FALSE) {
+                              confirm = TRUE,
+                              dry_run = FALSE,
+                              verbose = TRUE) {
   
-  cat("Looking for YAML older than ", days, "days...\n\n")
+  if (verbose) message("Looking for YAML older than ", days, "days..")
   
-
+  
   all_yamls <- c(
     list.files(base_dir, pattern = paste0("^", config_file, "$"), 
                recursive = TRUE, full.names = TRUE),
@@ -746,7 +840,7 @@ delete_old_config <- function(base_dir,
                recursive = TRUE, full.names = TRUE)
   )
   
-
+  
   date_limite <- Sys.Date() - days
   yaml_anciens <- c()
   
@@ -762,30 +856,34 @@ delete_old_config <- function(base_dir,
   nb_anciens <- length(yaml_anciens)
   
   if (nb_anciens == 0) {
-    cat("No YAML found older than ", days, "days.\n")
+    if (verbose) message("No YAML found older than ", days, "days.")
     return(invisible(0))
   }
   
-  cat("YAML older than ", days, "days found:", nb_anciens, "\n\n")
+  if (verbose) message("YAML older than ", days, "days found:", nb_anciens)
   
   if (dry_run) {
-    cat("DRY-RUN MODE\n")
-    for (yaml_path in yaml_anciens) {
-      file_info <- file.info(yaml_path)
-      age <- as.numeric(Sys.Date() - as.Date(file_info$mtime))
-      chemin_rel <- gsub(paste0("^", base_dir, "/?"), "", yaml_path)
-      cat("  ", chemin_rel, "(", age, "days )\n")
+    if (verbose) {
+      message("DRY-RUN MODE")
+      for (yaml_path in yaml_anciens) {
+        file_info <- file.info(yaml_path)
+        age <- as.numeric(Sys.Date() - as.Date(file_info$mtime))
+        chemin_rel <- gsub(paste0("^", base_dir, "/?"), "", yaml_path)
+        message("  ", chemin_rel, "(", age, "days )")
+      }
     }
     return(invisible(nb_anciens))
   }
   
   # Suppression
-  cat("Deleting ", nb_anciens, "files...\n")
-  reponse <- readline(prompt = "Ok ? (yes/no) : ")
-  
-  if (tolower(trimws(reponse)) != "yes") {
-    cat("Cancelled.\n")
-    return(invisible(0))
+  if (confirm) {
+    if (verbose) message("Deleting ", nb_anciens, "files...")
+    reponse <- readline(prompt = "Ok ? (yes/no) : ")
+    
+    if (tolower(trimws(reponse)) != "yes") {
+      if (verbose) message("Cancelled.")
+      return(invisible(0))
+    }
   }
   
   nb_supprimes <- 0
@@ -794,11 +892,10 @@ delete_old_config <- function(base_dir,
       file.remove(yaml_path)
       nb_supprimes <- nb_supprimes + 1
     }, error = function(e) {
-      cat("Error:", yaml_path, "-", e$message, "\n")
+      if (verbose) message("Error:", yaml_path, "-", e$message)
     })
   }
   
-  cat("\n OK - ", nb_supprimes, "files deleted.\n")
+  if (verbose) message("OK - ", nb_supprimes, "files deleted.")
   return(invisible(nb_supprimes))
 }
-

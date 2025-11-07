@@ -571,53 +571,78 @@ shiny_drive_server <- function(input,
   }, ignoreInit = TRUE)
   
   req_yml <- reactive({
-    
     save_dir <- get_save_dir()
     
     if(!is.null(input$select_file_dir) && input$select_file_dir != ""){
-      if(input$select_file_dir !="/"){
+      if(input$select_file_dir != "/"){
         file.path(save_dir, input$select_file_dir, isolate(get_yml()))
-      }else{
+      } else {
         file.path(save_dir, isolate(get_yml()))
       }
     } else {
-      ""
+      file.path(save_dir, isolate(get_yml()))
     }
   })
+
   
   all_files <- reactivePoll(intervalMillis, session,
                             checkFunc = function() {
-                              x <- isolate(req_yml())
-                              if (!is.null(x) && length(x) > 0 && file.exists(x)){
-                                info <- file.info(x)
-                                info$atime <- NULL
-                                info
+                              save_dir <- isolate(get_save_dir())
+                              
+                              if(!is.null(input$select_file_dir) && input$select_file_dir != ""){
+                                if(input$select_file_dir != "/"){
+                                  current_path <- file.path(save_dir, input$select_file_dir)
+                                } else {
+                                  current_path <- save_dir
+                                }
+                              } else {
+                                current_path <- save_dir
+                              }
+                              
+
+                              all_yamls <- list.files(current_path, 
+                                                      pattern = paste0("^", isolate(get_yml()), "$"),
+                                                      recursive = TRUE, 
+                                                      full.names = TRUE)
+                              
+                              if(length(all_yamls) > 0) {
+
+                                paste(sapply(all_yamls, function(yml) {
+                                  if(file.exists(yml)) {
+                                    info <- file.info(yml)
+                                    paste(yml, info$mtime, info$size, collapse = "-")
+                                  } else {
+                                    ""
+                                  }
+                                }), collapse = "|")
                               } else {
                                 ""
                               }
                             },
                             
                             valueFunc = function() {
-                              x <- isolate(req_yml())
-                              result <- get_yaml_info(x, 
-                                                      recorded_name = TRUE,
-                                                      date_time_format = date_time_format, 
-                                                      add_img = TRUE, 
-                                                      img_size = 30,
-                                                      format_size = TRUE
-                              )
+                              save_dir <- isolate(get_save_dir())
                               
-
-                              if(!is.null(result) && nrow(result) > 0) {
-                                if(!"file_path" %in% colnames(result)) {
-                                  result$file_path <- NA
+                              if(!is.null(input$select_file_dir) && input$select_file_dir != ""){
+                                if(input$select_file_dir != "/"){
+                                  current_rel_dir <- input$select_file_dir
+                                } else {
+                                  current_rel_dir <- ""
                                 }
-                                
-                                result$subdir <- result$file_path
-                                    
-                                    
-                                    result$subdir[is.na(result$subdir) | is.null(result$subdir)] <- ""
-                                  }
+                              } else {
+                                current_rel_dir <- ""
+                              }
+                              
+                              result <- combine_yaml_recursive(
+                                base_dir = save_dir,
+                                current_dir = current_rel_dir,
+                                config_file = isolate(get_yml()),
+                                recorded_name = TRUE,
+                                date_time_format = date_time_format,
+                                add_img = TRUE,
+                                img_size = 30,
+                                format_size = TRUE
+                              )
                               
                               result
                             }
@@ -701,18 +726,19 @@ shiny_drive_server <- function(input,
   
  
   observeEvent(input$added_file, {
-    
     save_dir <- isolate(get_save_dir())
-    
     file_info <- input[[paste0("file_load", count_file_load())]]
     
-   
-    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      dir <- file.path(save_dir, input$select_file_dir)
-    }else{
+    # Déterminer le bon répertoire
+    if(!is.null(input$select_file_dir) && input$select_file_dir != ""){
+      if(input$select_file_dir != "/"){
+        dir <- file.path(save_dir, input$select_file_dir)
+      } else {
+        dir <- save_dir
+      }
+    } else {
       dir <- save_dir
     }
-    
     
     removeModal()
     
@@ -790,6 +816,9 @@ shiny_drive_server <- function(input,
     dt$id <- NULL
     dt$recorded_name <- NULL
     dt$file_path <- NULL
+    dt$full_dir_path <- NULL 
+    dt$original_id <- NULL
+    dt$yml_path <- NULL  
 
     
     if(!has_description) dt$description <- NULL
@@ -877,37 +906,45 @@ shiny_drive_server <- function(input,
     save_dir <- isolate(get_save_dir())
     file_info <- download_file_r()
     
-
-    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      yaml_dir <- file.path(save_dir, input$select_file_dir)
-    } else {
-      yaml_dir <- save_dir
+    if(is.null(file_info) || nrow(file_info) == 0) {
+      return(NULL)
     }
     
-
-    if(!is.null(file_info$file_path) && file_info$file_path != "" && !is.na(file_info$file_path)) {
-      dir <- file.path(yaml_dir, file_info$file_path)
-    } else {
-      dir <- yaml_dir
+    all_data <- all_files()
+    file_complete <- all_data[all_data$id == file_info$id[1], ]
+    
+    if(nrow(file_complete) == 0) {
+      return(NULL)
     }
     
+    if(!is.null(file_complete$full_dir_path) && file_complete$full_dir_path != "") {
+      dir <- file_complete$full_dir_path
+    } else {
 
-    fp_recorded <- file.path(dir, file_info$recorded_name)
+      if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
+        yaml_dir <- file.path(save_dir, input$select_file_dir)
+      } else {
+        yaml_dir <- save_dir
+      }
+      
+      if(!is.null(file_complete$subdir) && file_complete$subdir != "" && !is.na(file_complete$subdir)) {
+        dir <- file.path(yaml_dir, file_complete$subdir)
+      } else {
+        dir <- yaml_dir
+      }
+    }
     
-
-    fp_simple <- file.path(dir, file_info$name)
+    fp_recorded <- file.path(dir, file_complete$recorded_name)
+    fp_simple <- file.path(dir, file_complete$name)
     
-
     if(file.exists(fp_recorded)) {
-      fp_recorded
+      return(fp_recorded)
     } else if(file.exists(fp_simple)) {
-      fp_simple
+      return(fp_simple)
     } else {
-
-      fp_recorded
+      return(fp_recorded)
     }
   })
-  
   
   
   observeEvent(input$download_file, {
@@ -1105,24 +1142,24 @@ shiny_drive_server <- function(input,
   }, ignoreInit = TRUE)
   
   observeEvent(input$removed_file, {
+    # Récupérer le fichier complet avec toutes les métadonnées
+    all_data <- all_files()
+    file_to_delete <- all_data[all_data$id == file_to_remove()$id[1], ]
     
-    save_dir <- isolate(get_save_dir())
-    
-    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      dir <- file.path(save_dir, input$select_file_dir)
-    }else{
-      dir <- save_dir
+    if(nrow(file_to_delete) == 0) {
+      return(NULL)
     }
     
-    file_to_delete <- file_to_remove()
-    if(!is.null(file_to_delete$subdir) && file_to_delete$subdir != "" && !is.na(file_to_delete$subdir)) {
-      dir <- file.path(dir, file_to_delete$subdir)
-    }
+    # Utiliser yml_path directement
+    yml_path <- file_to_delete$yml_path
+    dir <- file_to_delete$full_dir_path
     
     ctrl_rm <- tryCatch({
-      suppress_file_in_dir(id = as.character(file_to_remove()$id),
-                           dir = dir,
-                           yml = req_yml())
+      suppress_file_in_dir(
+        id = as.character(file_to_delete$original_id),  # Utiliser original_id !
+        dir = dir,
+        yml = yml_path
+      )
     },
     error = function(e){
       showModal(
@@ -1134,9 +1171,7 @@ shiny_drive_server <- function(input,
         ))
       NULL
     })
-    
   }, ignoreInit = TRUE)
-  
   
   r_selected_files <- callModule(module = input_checkbox, id = "remove_mult_files")
   
@@ -1185,29 +1220,30 @@ shiny_drive_server <- function(input,
     save_dir <- isolate(get_save_dir())
     req(save_dir)
     
-    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      base_dir <- file.path(save_dir, input$select_file_dir)
-    } else {
-      base_dir <- save_dir
-    }
-    
-    
     all_files_data <- all_files()
     selected_ids <- files_to_remove()$id
     
-    sapply(selected_ids, function(file_id){
+    file_paths <- sapply(selected_ids, function(file_id){
       file_info <- all_files_data[all_files_data$id == file_id, ]
       
       if(nrow(file_info) == 0) return(NULL)
       
-
-      if(!is.null(file_info$file_path) && file_info$file_path != "" && !is.na(file_info$file_path)) {
-        dir <- file.path(base_dir, file_info$file_path)
+      if(!is.null(file_info$full_dir_path) && file_info$full_dir_path != "") {
+        dir <- file_info$full_dir_path
       } else {
-        dir <- base_dir
+        if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
+          base_dir <- file.path(save_dir, input$select_file_dir)
+        } else {
+          base_dir <- save_dir
+        }
+        
+        if(!is.null(file_info$subdir) && file_info$subdir != "" && !is.na(file_info$subdir)) {
+          dir <- file.path(base_dir, file_info$subdir)
+        } else {
+          dir <- base_dir
+        }
       }
       
-
       fp_recorded <- file.path(dir, file_info$recorded_name)
       fp_simple <- file.path(dir, file_info$name)
       
@@ -1216,13 +1252,15 @@ shiny_drive_server <- function(input,
       } else if(file.exists(fp_simple)) {
         fp <- fp_simple
       } else {
-        fp <- fp_recorded  
+        fp <- fp_recorded
       }
       
       names(fp) <- paste0(tools::file_path_sans_ext(file_info$name), ".",
                           tools::file_ext(file_info$name))
       fp
     })
+    
+    file_paths[!sapply(file_paths, is.null)]
   })
   
   
@@ -1358,21 +1396,25 @@ shiny_drive_server <- function(input,
   
   
   observeEvent(input$removed_selected_files, {
-    
-    save_dir <- isolate(get_save_dir())
-    
-    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      dir <- file.path(save_dir, input$select_file_dir)
-    }else{
-      dir <- save_dir
-    }
+    # Récupérer toutes les données avec les métadonnées complètes
+    all_data <- all_files()
     
     for(i in 1:nrow(files_to_remove())){
+      file_id <- files_to_remove()[i, "id"]
+      file_to_delete <- all_data[all_data$id == file_id, ]
+      
+      if(nrow(file_to_delete) == 0) next
+      
+      # Utiliser yml_path et original_id directement
+      yml_path <- file_to_delete$yml_path
+      dir <- file_to_delete$full_dir_path
       
       ctrl_rm <- tryCatch({
-        suppress_file_in_dir(id = as.character(files_to_remove()[i, "id"]),
-                             dir = dir,
-                             yml = req_yml())
+        suppress_file_in_dir(
+          id = as.character(file_to_delete$original_id),  # Utiliser original_id !
+          dir = dir,
+          yml = yml_path
+        )
       },
       error = function(e){
         showModal(
@@ -1466,28 +1508,31 @@ shiny_drive_server <- function(input,
   download_all_files_rf <- reactive({
     req(all_files())
     
-    if(nrow(all_files()) == 0) return(character(0))
+    all_data <- all_files()
+    
+    if(nrow(all_data) == 0) return(character(0))
     
     save_dir <- isolate(get_save_dir())
     req(save_dir)
     
-    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      base_dir <- file.path(save_dir, input$select_file_dir)
-    } else {
-      base_dir <- save_dir
-    }
-    
-    sapply(1:nrow(all_files()), function(i){
-      download_file_r <- all_files()[i, ]
+    file_paths <- sapply(1:nrow(all_data), function(i){
+      download_file_r <- all_data[i, ]
       
-
-      if(!is.null(download_file_r$file_path) && download_file_r$file_path != "" && !is.na(download_file_r$file_path)) {
-        dir <- file.path(base_dir, download_file_r$file_path)
+      if(!is.null(download_file_r$full_dir_path) && download_file_r$full_dir_path != "") {
+        dir <- download_file_r$full_dir_path
       } else {
-        dir <- base_dir
+        if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
+          base_dir <- file.path(save_dir, input$select_file_dir)
+        } else {
+          base_dir <- save_dir
+        }
+        
+        if(!is.null(download_file_r$subdir) && download_file_r$subdir != "" && !is.na(download_file_r$subdir)) {
+          dir <- file.path(base_dir, download_file_r$subdir)
+        } else {
+          dir <- base_dir
+        }
       }
-      
-
       
       fp_recorded <- file.path(dir, download_file_r$recorded_name)
       fp_simple <- file.path(dir, download_file_r$name)
@@ -1497,13 +1542,15 @@ shiny_drive_server <- function(input,
       } else if(file.exists(fp_simple)) {
         fp <- fp_simple
       } else {
-        fp <- fp_recorded  
+        fp <- fp_recorded
       }
       
       names(fp) <- paste0(tools::file_path_sans_ext(download_file_r$name), ".",
                           tools::file_ext(download_file_r$name))
       fp
     })
+
+    file_paths[!sapply(file_paths, is.null)]
   })
   
   output$downloaded_all_files <- downloadHandler(
