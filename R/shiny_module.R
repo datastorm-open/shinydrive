@@ -1066,32 +1066,54 @@ shiny_drive_server <- function(input,
   })
   
   observeEvent(input$edited_file, {
-    
     save_dir <- isolate(get_save_dir())
+
+    all_data <- all_files()
+    file_to_edit_complete <- all_data[all_data$id == file_to_edit()$id[1], ]
     
-    if(!is.null(input$load_new)){
+    if(nrow(file_to_edit_complete) == 0) {
+      return(NULL)
+    }
+    
+    if(!is.null(input$load_new) && input$load_new){
       file_info <- input[[paste0("file_load", count_file_load())]]
     } else {
       file_info <- NULL
     }
     
-    if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
-      dir <- file.path(save_dir, input$select_file_dir)
-    }else{
-      dir <- save_dir
-    }
+
+    dir <- file_to_edit_complete$full_dir_path
+    yml_path <- file_to_edit_complete$yml_path
     
+
+    if(is.null(dir) || is.na(dir) || dir == "") {
+      if(!is.null(input$select_file_dir) && input$select_file_dir != "/"){
+        dir <- file.path(save_dir, input$select_file_dir)
+      } else {
+        dir <- save_dir
+      }
+      
+      if(!is.null(file_to_edit_complete$subdir) && 
+         file_to_edit_complete$subdir != "" && 
+         !is.na(file_to_edit_complete$subdir)) {
+        dir <- file.path(dir, file_to_edit_complete$subdir)
+      }
+      
+      yml_path <- file.path(dir, isolate(get_yml()))
+    }
     
     removeModal()
     
     ctrl_edit <- tryCatch({
-      edit_file_in_dir(id = as.character(file_to_edit()$id),
-                       dir = dir,
-                       yml = req_yml(),
-                       name = input$file_name_bis,
-                       description = input$description_bis,
-                       file = file_info$datapath, 
-                       date_time_format = date_time_format)
+      edit_file_in_dir(
+        id = as.character(file_to_edit_complete$original_id),
+        dir = dir,
+        yml = yml_path,
+        name = input$file_name_bis,
+        description = input$description_bis,
+        file = if(!is.null(file_info)) file_info$datapath else NULL, 
+        date_time_format = date_time_format
+      )
     },
     error = function(e){
       showModal(
@@ -1105,7 +1127,6 @@ shiny_drive_server <- function(input,
     })
     
   }, ignoreInit = TRUE)
-  
   
   
   
