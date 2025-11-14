@@ -1,4 +1,4 @@
-ID;FR;EN;CN
+﻿ID;FR;EN;CN
 1;Sous-dossiers : ;Sub-folders :;子文件夹
 2;Créer;Create;创建
 3;Renommer;Rename;重命名
@@ -46,3 +46,16 @@ ID;FR;EN;CN
 45;Aucun fichier disponible;Empty directory;空目录
 46;Type;Type;类型
 47;Supprimer;Remove;删除
+48;Taille;Size;大小
+50;Tout sélectionner;Select all;全选 
+51;Tout désélectionner;Deselect all;取消全选
+52;Tout télécharger;Download all;全部下载
+53;Préparation…;Getting ready…;准备中…
+54;Aucun fichier;No files;没有文件
+55;Il n'y a aucun fichier à télécharger.;There are no files to download.;没有文件可下载。
+56;OK;OK;确定
+57;fichier(s) seront téléchargés;file(s) will be downloaded;个文件将被下载
+58;Erreur lors de l'ajout du fichier;Error adding file;添加文件错误
+59;Erreur lors de la modification du fichier;Error editing file;编辑文件错误
+60;Erreur lors de la suppression du fichier;Error removing file;删除文件错误
+61;fichier(s);file(s);个文件

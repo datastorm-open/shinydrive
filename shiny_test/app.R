@@ -10,8 +10,8 @@
 library(shiny)
 library(shinydrive)
 library(shinymanager)
-unlink("dir_file", recursive = T)
-dir.create("dir_file")
+#unlink("dir_file", recursive = T)
+#dir.create("dir_file")
 
 credentials <- data.frame(
     user = c("shiny", "shinymanager"),
@@ -47,11 +47,11 @@ server <- function(input, output, session) {
                id = "idm_1",
                session = session,
                admin_user = reactive(input$admin),
-               save_dir =  "dir_file",
+               save_dir =  "~/shinydrive/dir_file",
                lan = reactive(input$langue),
                force_desc = reactive(input$force_desc), 
-               yml = "custom.yml", 
-               date_time_format = "%Y%m%d_%H%M")
+               yml = "files_desc.yaml", 
+               date_time_format = "%Y%m%d_%H%M%S")
     
     
 }

@@ -37,7 +37,7 @@ https://datastorm-demo.shinyapps.io/shinydrive/
 *local*
 
 ``` r
-runApp(system.file("demo_app", package = "shinydrive"))
+shiny::runApp(system.file("demo_app", package = "shinydrive"))
 ```
 
 ### Example

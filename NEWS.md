@@ -1,3 +1,7 @@
+# shinydrive 0.1.5
+
+* Add size
+
 # shinydrive 0.1.4
 
 * Fast file checking

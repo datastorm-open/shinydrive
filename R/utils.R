@@ -125,3 +125,23 @@ unbindDTSFM <- function(id, session = getDefaultReactiveDomain()) {
     message = list(id = id)
   )
 }
+
+calculate_subdir <- function(full_path, base_dir) {
+  if(is.null(full_path) || is.na(full_path) || full_path == "") {
+    return("/")
+  }
+  
+  tryCatch({
+    base_dir <- normalizePath(base_dir, winslash = "/", mustWork = FALSE)
+    full_path <- normalizePath(full_path, winslash = "/", mustWork = FALSE)
+    
+    subdir <- gsub(paste0("^", base_dir, "/?"), "", full_path)
+    if(subdir == "" || subdir == full_path) {
+      return("/")
+    }
+    return(subdir)
+  }, error = function(e) {
+    return("/")
+  })
+}
+
